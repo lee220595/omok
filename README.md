@@ -102,6 +102,7 @@ licenses/     배포용 외부 라이선스 원문
 기본 창의 과거 실제 빌드·실행 검증과 미검증 범위는 아래 검증 기록에 있다. 저장 정책·제외 규칙만 변경하는 작업에서 빌드·실행을 재수행했다고 보고하지 않는다.
 
 - [개발 지침](AGENTS.md) · [승인 기록](docs/requirements-pending.md)
+- [다음 단계 개발 인계](docs/handoff.md)
 - [전체 개발 계획·단계별 완료 기준](docs/development-plan.md)
 - [기술·라이선스 선택 근거](docs/technology-decisions.md)
 - [매니저·외부 AI 후보](docs/integration-candidates.md) · [기존 공식 규칙 조사](docs/compatibility-research.md)
