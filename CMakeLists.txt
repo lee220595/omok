@@ -9,8 +9,19 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+include(CTest)
 
-# Dependency directions are reserved here; these modules have no implementation yet.
+function(omok_compiler_options target)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:/W4;/permissive-;/utf-8>")
+        set_property(TARGET ${target} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    elseif(MINGW)
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow
+            -finput-charset=UTF-8 -fexec-charset=UTF-8)
+    endif()
+endfunction()
+
+# State is implemented; the other domain modules still reserve dependency boundaries.
 add_subdirectory(src/state)
 add_subdirectory(src/rules)
 add_subdirectory(src/opening)
@@ -42,13 +53,9 @@ target_link_libraries(omok PRIVATE omok_gui)
 foreach(target IN ITEMS omok omok_gui)
     target_compile_definitions(${target} PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN
         WINVER=0x0A00 _WIN32_WINNT=0x0A00)
-    if(MSVC)
-        target_compile_options(${target} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:/W4;/permissive-;/utf-8>")
-        set_property(TARGET ${target} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    elseif(MINGW)
-        target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow
-            -finput-charset=UTF-8 -fexec-charset=UTF-8)
-    endif()
+endforeach()
+foreach(target IN ITEMS omok omok_gui omok_state)
+    omok_compiler_options(${target})
 endforeach()
 if(MINGW)
     target_link_options(omok PRIVATE -municode -static -static-libgcc -static-libstdc++)
@@ -56,6 +63,9 @@ endif()
 if(MSVC)
     # The resource file already contains the application manifest.
     target_link_options(omok PRIVATE /MANIFEST:NO)
+endif()
+if(BUILD_TESTING)
+    add_subdirectory(tests)
 endif()
 
 install(TARGETS omok RUNTIME DESTINATION .)
