@@ -1,0 +1,30 @@
+# 기반 기술 선택
+
+결정일: 2026-10-19. 사용자에게 승인받은 일반 기술 선택 재량 안에서 결정했다.
+
+| 선택 | 근거 | 비용·제약 |
+|---|---|---|
+| C++20, 확장 비활성 | 설치된 GCC 13.3.0에서 사용 가능. 향후 상태·수명 관리·비동기 구현에 충분하며 C++23 의존 불필요 | 플랫폼 독립 로직에 Windows 헤더를 넣지 않음 |
+| Win32 User32/GDI32 | Windows 전용 요구에 맞는 OS 기본 GUI 라이브러리. 별도 GUI SDK·DLL 설치 없이 창·입력·그리기 가능 | 네이티브 레이아웃·DPI·접근성 처리는 직접 구현해야 함. 이 선택이 규칙 로직을 GUI에 넣을 근거는 아님 |
+| CMake 3.24 이상 | 모듈별 타깃, Ninja·MSVC 생성기, 설치·ZIP 패키징을 한 구성에서 관리 | 빌드 도구를 사용자 실행 의존성으로 배포하지 않음 |
+| Ninja + 기존 MinGW-w64 x64 | 이미 설치돼 있어 추가 설치 없이 실제 빌드 가능. GCC 런타임 정적 링크로 배포 파일 수 감소 | 설치된 Ninja/windres의 한글·공백 경로 문제를 scripts/build.ps1의 ASCII 경로 별칭과 상대 리소스 컴파일로 회피 |
+| MSVC 2022 선택 경로 | 향후 Windows SDK 도구와 표준적인 Windows 빌드 비교 가능 | 현재 설치 확인되지 않았고 빌드 미검증. 기본 경로로 요구하지 않음 |
+
+Qt·wxWidgets도 후보가 될 수 있지만 현재 Windows 전용 최소 창과 향후 바둑판에 필수는 아니다. Win32를 선택해 GUI 런타임 배포와 프레임워크 라이선스 관리 부담을 줄였다. GUI 교체가 필요해져도 도메인·대국 제어·통신에는 영향을 주지 않는 경계를 유지한다.
+
+## 라이선스와 배포
+- OS의 User32/GDI32는 Windows 제공 DLL을 링크해 사용한다. DLL을 복사해 배포하지 않는다. Microsoft SDK의 코드·샘플을 복사해 제품에 포함하지 않았고, 현재 빌드는 MinGW-w64 헤더·import library를 사용한다.
+- MinGW-w64 기본 ZPL 2.1과 파일별 예외, GCC GPL+Runtime Library Exception 3.1을 공식 원문으로 확인했다. 고지와 라이선스 원문을 패키지에 포함한다. 상세 내용은 [배포 고지](../THIRD_PARTY_NOTICES.md).
+- CMake BSD 계열, Ninja Apache-2.0은 빌드 도구의 조건이다. 실행 패키지는 해당 도구를 포함하지 않는다. 설치된 CMake 3.29.3 Copyright 원문을 별도 조사 캐시에서 확인했다.
+- 프로젝트 자체 공개 라이선스는 선정하지 않았다. 이 결정은 사용자에게 프로젝트 전체 라이선스를 임의로 부여하는 조치가 아니다.
+
+## 공식 참고
+- [Microsoft의 기본 Win32 창·메시지 루프](https://learn.microsoft.com/en-us/windows/win32/learnwin32/your-first-windows-program)
+- [GCC C++ 표준 지원](https://gcc.gnu.org/projects/cxx-status.html)
+- [CMake 3.29.3 Copyright](https://github.com/Kitware/CMake/blob/v3.29.3/Copyright.txt)
+- [Ninja 1.12.1 COPYING](https://github.com/ninja-build/ninja/blob/v1.12.1/COPYING)
+- [MinGW-w64 11.0.1 COPYING](https://github.com/mingw-w64/mingw-w64/blob/v11.0.1/COPYING)
+- [GCC 런타임 라이선스](https://gcc.gnu.org/onlinedocs/libstdc++/manual/license.html)
+
+## 빌드 경로 문제와 대응
+기존 Ninja 1.12.1은 이 폴더의 한글 경로를 포함한 의존성 조회에서 FindFirstFileExA 오류가 났고, windres는 공백이 있는 절대 include 경로를 잘못 분리했다. 리소스 파일은 독립적인 상대 파일명으로 컴파일하고, 빌드 스크립트는 ASCII 임시 경로에 현재 프로젝트를 가리키는 junction만 만든다. 소스를 이동·복사하지 않는다. 이미 다른 대상을 가리키는 alias가 있으면 삭제하지 않고 오류로 종료한다. 이전 실패 캐시와 새 빌드 디렉터리를 분리했다.
