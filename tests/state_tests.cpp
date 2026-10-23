@@ -276,13 +276,34 @@ void no_adjudication()
     CHECK(state == GameState{});
 }
 
+void prepared_actor()
+{
+    GameState state;
+    CHECK(state.commit_placement({{7, 7}, StoneColor::Black, std::nullopt}, StoneColor::White) == StateError::None);
+    CHECK(!state.history()[0].placed_by);
+    CHECK(state.assign_colors(Participant::B) == StateError::None);
+    CHECK(!state.history()[0].placed_by); // assigning an owner does not fabricate an actor
+    const auto before = state;
+    CHECK(state.commit_placement({{7, 8}, StoneColor::White, invalid_participant}, StoneColor::Black)
+        == StateError::InvalidParticipant);
+    CHECK(state == before);
+    CHECK(state.finish(Draw{}) == StateError::None);
+    const auto terminal = state;
+    CHECK(state.commit_placement({{7, 8}, StoneColor::White, std::nullopt}, StoneColor::Black)
+        == StateError::AlreadyFinished);
+    CHECK(state == terminal);
+    CHECK(state.reset() == StateError::None);
+    CHECK(state == GameState{});
+}
+
 struct TestCase { std::string_view name; void (*run)(); };
 constexpr TestCase cases[]{
     {"initial_state", initial_state}, {"coordinates", coordinates}, {"boundaries", boundaries},
     {"rejected_requests", rejected_requests}, {"color_assignment", color_assignment},
     {"relative_stones", relative_stones}, {"recoloring", recoloring}, {"history", history},
     {"explicit_turn", explicit_turn}, {"terminal_results", terminal_results},
-    {"rejected_results", rejected_results}, {"reset", reset}, {"no_adjudication", no_adjudication}};
+    {"rejected_results", rejected_results}, {"reset", reset}, {"no_adjudication", no_adjudication},
+    {"prepared_actor", prepared_actor}};
 } // namespace
 
 int main(int argc, char** argv)

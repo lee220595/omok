@@ -6,9 +6,23 @@ if(MINGW)
 endif()
 
 foreach(case IN ITEMS initial_state coordinates boundaries rejected_requests color_assignment
-        relative_stones recoloring history explicit_turn terminal_results rejected_results reset no_adjudication)
+        relative_stones recoloring history explicit_turn terminal_results rejected_results reset no_adjudication prepared_actor)
     add_test(NAME state.${case} COMMAND omok_state_tests ${case})
     set_tests_properties(state.${case} PROPERTIES TIMEOUT 10 LABELS state)
+endforeach()
+
+add_executable(omok_opening_tests opening_tests.cpp)
+target_link_libraries(omok_opening_tests PRIVATE omok_opening)
+omok_compiler_options(omok_opening_tests)
+if(MINGW)
+    target_link_options(omok_opening_tests PRIVATE -static -static-libgcc -static-libstdc++)
+endif()
+foreach(case IN ITEMS loader prepared_restore prepared_rejection prepared_terminal prepared_limit
+        prepared_first_move swap2_take_black swap2_take_white swap2_two_take_black swap2_two_take_white
+        swap2_rejections swap2_atomic event_history initialization)
+    add_test(NAME opening.${case} COMMAND omok_opening_tests "${case}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/prepared-self-authored.txt")
+    set_tests_properties(opening.${case} PROPERTIES TIMEOUT 30 LABELS opening)
 endforeach()
 
 add_executable(omok_rules_tests rules_tests.cpp)

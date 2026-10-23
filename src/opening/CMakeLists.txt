@@ -1,3 +1,5 @@
-# Reserved boundary: prepared openings and Swap2 transitions.
-add_library(omok_opening INTERFACE)
-target_link_libraries(omok_opening INTERFACE omok_state)
+add_library(omok_opening STATIC opening.cpp)
+target_include_directories(omok_opening PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(omok_opening PUBLIC omok_rules)
+target_compile_features(omok_opening PUBLIC cxx_std_20)
+omok_compiler_options(omok_opening)

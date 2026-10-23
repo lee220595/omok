@@ -71,8 +71,8 @@ using GameResult = std::variant<InProgress, Won, Draw, Aborted>;
 struct Placement {
     Coordinate position;
     StoneColor color;
-    // The actor who placed this stone, not necessarily its eventual owner.
-    Participant placed_by;
+    // Actual actor, not the eventual owner. nullopt = externally prepared stone.
+    std::optional<Participant> placed_by;
     bool operator==(const Placement&) const = default;
 };
 

@@ -68,7 +68,7 @@ StateError GameState::commit_placement(Placement placement, StoneColor next_colo
     if (!valid(placement.color) || !valid(next_color)) {
         return StateError::InvalidColor;
     }
-    if (!valid(placement.placed_by)) {
+    if (placement.placed_by && !valid(*placement.placed_by)) {
         return StateError::InvalidParticipant;
     }
     if (placement.color != next_color_) {
