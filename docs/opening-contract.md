@@ -76,3 +76,5 @@ match는 인계 스냅샷을 바탕으로 자체 가변 상태를 소유하고 �
 이벤트에는 Started, BatchPlaced, ChoiceMade, ColorsAssigned, Completed가 있고 당시 주체·선택·흑 소유자·총 배치 수를 기록한다. mode와 준비 id는 세션 메타데이터, 돌 좌표·색·실제 주체는 game 이력에 있다. 준비 복원 이벤트의 actor는 없음이다. 향후 기보는 **메타데이터+이력+이벤트+결과**를 함께 저장해야 하며 이벤트만 저장하면 배치를 재현할 수 없다. 이번에는 메모리 내 기록만 구현했고 파일 저장·불러오기·복기는 구현하지 않았다.
 
 새 초기화 함수는 이전 세션을 성공 시 교체한다. 단계별 응답은 성공 시에만 새 사본을 공개하며 실패 시 전체 보존한다. 최종 move assignment의 noexcept를 static_assert로 확인한다. 동적 메모리 할당 예외는 호출자에게 전달하며 원 세션은 유지하지만 할당 실패 주입 검증은 수행하지 않았다.
+
+2026-10-24 후속: match가 원본 Session 전체와 별도 진행 상태를 보존한다. GUI에 자체 작성한 개발용 배치 다섯 가지를 제공하며 공식 데이터로 소개하지 않는다. 외부 데이터/테스트 fixture의 install 제외는 유지한다. [match 계약](match-contract.md)·[검증](verification-match.md)을 따른다. Swap2의 RuleContractRequired 차단은 그대로다.

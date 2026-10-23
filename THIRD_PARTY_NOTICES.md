@@ -10,9 +10,11 @@ MinGW 빌드는 GCC 런타임을 정적으로 링크한다. GCC 13.3.0, libgcc �
 
 MinGW-w64 11.0.1 런타임·헤더는 파일별 Public Domain/BSD/LGPL 등 예외와 기본 ZPL 2.1 조건을 확인해야 한다. 함께 제공하는 [원문](licenses/mingw-w64-COPYING.txt)의 저작권·조건·면책 고지를 유지한다. Windows 기본 DLL에 대한 import library를 OS DLL 재배포 권한으로 해석하지 않는다.
 
+금수 작업자의 std::thread는 현재 POSIX 스레드 모델 MinGW에서 winpthreads를 사용한다. nm에서 pthread_create/pthread_join의 정적 포함을 확인했고, DLL import 검사에는 libwinpthread-1.dll이 없다. 설치된 pthread.h의 mingw-w64·Lockless 저작권/허가/면책 고지를 [winpthreads-NOTICES.txt](licenses/winpthreads-NOTICES.txt)에 그대로 보존한다. [MinGW-w64 11.0.1 공식 COPYING](https://github.com/mingw-w64/mingw-w64/blob/v11.0.1/mingw-w64-libraries/winpthreads/COPYING)의 MIT 계열·Lockless BSD 조건도 확인했다. 정적 링크여도 고지는 패키지에 포함한다.
+
 빌드 전용 CMake 3.29.3은 BSD 3-Clause 계열 고지, Ninja 1.12.1은 Apache-2.0 조건이다. 빌드 도구는 실행 패키지에 넣지 않는다. 도구를 별도 재배포한다면 각 원문·NOTICE 조건을 추가로 충족한다.
 
 - [CMake 저작권 원문](https://github.com/Kitware/CMake/blob/v3.29.3/Copyright.txt)
 - [Ninja 원문](https://github.com/ninja-build/ninja/blob/v1.12.1/COPYING)
 
-프로젝트 자체 코드의 외부 공개 라이선스는 아직 지정하지 않았다. 이 문서는 외부 구성요소의 고지이며 자체 코드에 임의로 GPL·MIT 등의 라이선스를 부여하지 않는다. 현재 패키지는 개발용 기본 창이며 Gomocup 제출 엔진이 아니다. 매니저·엔진을 향후 동봉하거나 코드를 가져오면 해당 버전의 라이선스·소스 제공·모델 조건을 먼저 확인하고 이 문서를 갱신한다.
+프로젝트 자체 코드의 외부 공개 라이선스는 아직 지정하지 않았다. 이 문서는 외부 구성요소의 고지이며 자체 코드에 임의로 GPL·MIT 등의 라이선스를 부여하지 않는다. 현재 패키지는 개발 확인용 로컬 대국 프로그램이며 수동 대국 검증이 남아 있다. Gomocup 제출 엔진이 아니다. 매니저·엔진을 향후 동봉하거나 코드를 가져오면 해당 버전의 라이선스·소스 제공·모델 조건을 먼저 확인하고 이 문서를 갱신한다.

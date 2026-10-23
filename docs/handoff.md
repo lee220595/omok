@@ -1,107 +1,76 @@
 # 오목 프로젝트 개발 인계
 
-갱신일: 2026-10-24. **로컬 사람 대 사람 대국 구현 도중의 인계이며, 단계 완료 보고가 아니다.**
+갱신일: 2026-10-24. **로컬 GUI 대국 단계는 수동 검증이 남아 미완료다. 구현·자동 검증·배포 스테이징·원격 저장은 수행했다.**
 
-이번 문서 정책 작업에서 AGENTS.md에 작업 종료 전 이 인계 문서를 갱신할 의무를 추가했다. 완료뿐 아니라 미완료 중단 시에도 변경 사항·검증 결과·미검증 사유·남은 작업·Git 저장 상태를 기록한다. 정책 변경과 이 문서만 `codex/local-match-gui`에서 커밋·푸시하며, 아래 match·GUI 미커밋 소스는 포함하지 않는다. 문서 링크와 `git diff --check`를 확인했고, 문서만 수정한 이번 작업에서는 빌드·CTest를 추가 실행하지 않았다. 아래 80/80 결과는 앞선 인계 갱신 때의 실제 실행 기록이다.
+## 기준과 Git 저장
 
-## 작업 기준과 저장 상태
+- 오프닝 단계 기준: `a15a871491b74c1685d1dad072c9edb392abc6f7`(기존 main·원격 반영 확인).
+- 이번 구현 보존 기준: **`5023aa239f8a4f135107efc6e0ad22f52c11a20c`**, WIP 커밋. 관련 match·GUI·좌표·헤더·CMake·테스트 소스를 모두 추적하고 `origin/codex/local-match-gui`에 일반 푸시했다. 이전 문서만 저장된 상태를 해소했다.
+- 후속 최종 수정은 작업자 수명/부분 취소 회귀, winpthreads 배포 고지, 최신 계약·실행 안내·검증 기록이다. 최종 커밋 ID와 푸시 결과는 완료 보고에 남긴다. 실제 상태는 `git status`, `git log`, 원격을 확인한다.
+- 작업 브랜치: `codex/local-match-gui`. **main에는 이번 구현을 합치지 않는다.** 수동 대국 검증이 남아 단계 완료 기준을 충족하지 않았기 때문이다. 강제 푸시·브랜치 삭제·변경 폐기는 하지 않았다.
 
-- 구현 기준 커밋: `a15a871491b74c1685d1dad072c9edb392abc6f7` — 준비 오프닝·별도 Swap2 상태 전환.
-- 이번 구현 시작 시 fetch하여 기준 커밋의 원격 푸시와 main 반영을 확인했다. 작업 브랜치는 `codex/local-match-gui`다.
-- **현재 match·GUI 소스 변경은 작업 폴더의 미커밋 변경이다. 원격 저장소에 저장되었다고 가정하지 않는다.** 인계·지침 문서만 별도 체크포인트로 커밋·푸시하며, 그 문서 커밋에는 아래 구현 코드가 포함되지 않는다. 실제 저장 상태는 `git status`, `git log`, 원격 브랜치로 확인한다.
-- 이번 match·GUI 코드는 main에 반영하지 않았다. 원격/다른 컴퓨터에서 이 문서만 읽는 경우 아래 미커밋 파일을 별도로 확보해야 작업을 이어갈 수 있다.
-- 사용자는 match·로컬 사람 대 사람 GUI·필요한 수정·테스트를 승인했다. AGENTS.md의 기존 바둑판 GUI·전체 match 제외 문구보다 이 후속 승인이 우선한다. **AGENTS.md·README·관련 계약의 최신화는 아직 남아 있다.**
+## 최신 승인과 자료
 
-먼저 [AGENTS](../AGENTS.md), [상태 계약](state-model.md), [규칙 계약](rules-spec.md), [판정 사례](renju-cases.md), [오프닝 계약](opening-contract.md), [오프닝 검증](verification-opening.md), [호환성 조사](compatibility-research.md)를 읽고 실제 코드를 우선 확인한다. 과거 67개 테스트 기록은 오프닝 단계의 결과이며 현재 등록 수는 80개다.
+사용자는 match·로컬 사람 대 사람 GUI 구현에 이어 WIP 보존·빌드/install 해결·수동 GUI 검증 재개·자동 테스트·문서/저장을 승인했다. AGENTS.md의 과거 범위 제한을 이 승인에 맞춰 갱신했다. 이번에는 AI·Swap2 GUI/규칙 연결·시계/자원 강제·기보 파일/복기·자체 AI로 확대하지 않았다.
 
-## 현재 코드와 미구현 기능
+먼저 [AGENTS](../AGENTS.md), [README](../README.md), [match·좌표·작업자 계약](match-contract.md), [최신 실제 검증과 남은 수동 절차](verification-match.md)를 읽는다. [상태](state-model.md)·[규칙](rules-spec.md)·[판정 사례](renju-cases.md)·[오프닝](opening-contract.md)·[호환성 조사](compatibility-research.md)도 유지한다. 과거 [오프닝 검증](verification-opening.md)과 [규칙 검증](verification-rules.md)은 당시 심판 함수 대조 기록이며 이번에 다시 실행하지 않았다.
 
-| 부분 | 작성한 기능 | 현재 한계 |
+## 구현된 내용과 경계
+
+- 독립 C++20 state/rules/opening을 match가 연결한다. 원본 Session 전체와 별도 진행 상태를 보존하며 준비 RenjuReady에서만 일반 착수한다. Terminal은 결과 표시만, 미완료/미결 Swap2는 차단한다.
+- 참가자 A/B·색·실제 배치 주체를 구분한다. 권한과 Token 검사, 판정·배치·교대·종료·이벤트를 사본에서 적용한다. 구조 오류는 전체 상태 보존, 흑 금수는 백 승리 종료이며 시도 돌을 성공 이력에 추가하지 않는다.
+- 기권·동일 준비 상태로 재시작·정상 닫기, 세션/revision으로 이전 입력 거부, 메모리 종료 사유/이벤트를 구현했다. 기보 파일과 과거 세션 영구 보관은 없다.
+- Win32 15×15 보드·흑백 돌·마지막 수·상태/결과·개발 배치/색 선택·compact 입력·클릭 착수·기권/재시작 UI를 작성했다. 실제 사용자 대국 동작은 아래 미검증 상태다.
+- 금수 표시는 기본 켬/흑 차례에만 분석한다. 단일 표준 스레드·불변 사본·최신 요청 합치기·취소·캐시를 사용하며 Token이 다른 결과는 폐기한다. 실제 착수는 최신 match에서 별도 판정한다. 재귀 깊이를 자르지 않는다.
+- `src/gui/board_geometry.*`에 클라이언트 픽셀↔행/열 변환을 모았다. 그리기와 클릭이 동일한 크기/DPI 기반 기하를 사용한다.
+- 소스는 `src/match/`와 공개 `include/omok/match/`, `src/gui/`, `tests/match_tests.cpp`에 있다. ai/records만 INTERFACE 경계로 남았다. 빌드 스크립트와 ASCII 경로 우회는 변경하지 않았다.
+
+## 시작 배치
+
+`src/match/development_positions.cpp`에 직접 작성한 개발용 다섯 배치다. 공식 준비 데이터·사용/재배포 조건은 미확보며 공식 배치로 소개하지 않는다. GUI에도 개발용·시계/자원 제한 미구현을 표시한다.
+
+| ID | 수/내용 | 확인용 다음 입력 |
 |---|---|---|
-| state·rules·opening | 기존 상태·렌주 판정·준비 배치 복원·별도 Swap2 상태 전환 유지 | 공식 준비 데이터와 사용 조건 미확보, Swap2 규칙 바인딩 미해결 |
-| match | Session 전체 보존, 준비 배치 시작, 권한·차례 검사, 사본에서 판정/배치/종료 적용, 승리·200수 무승부·금수패·기권·재시작·닫기, 세션/보드 버전과 메모리 이벤트 | 코드와 자동 테스트 작성. 전체 GUI 대국 수동 확인 미완료, 시계·자원 제한 없음 |
-| GUI | 15×15 보드·돌, 준비 배치 선택/compact 입력, A/B 색 배정, 차례·수순·마지막 수·결과, 클릭 착수, 기권·재시작, 크기/DPI에 따른 좌표 계산 | 창과 대기 화면만 실제 확인. 시작부터 종료까지 사용자 동작 검증 미완료 |
-| 금수 표시 | 기본 켬, 전용 작업자 스레드의 스냅샷 분석, 캐시, 세션/보드 버전으로 오래된 결과 거부 | 실제 GUI 조작 중 반응성·최악 재귀 비용·종료 지연 미검증 |
-| ai·records | 기존 INTERFACE 경계 유지 | AI 통신/프로세스·AI 대 AI·기보 파일·복기 미구현 |
-| 자동 테스트 | 상태 14 + 규칙 39 + 오프닝 14 + match 13 = 80개 | 자동 테스트 통과와 GUI 수동 검증·실제 엔진 검증을 구분할 것 |
+| dev-basic-v1 | 3수 `h8i8g9` | 백 I9, 흑 H7로 교대 확인 |
+| dev-win-v1 | 7수 `a8a1b8c1c8e1d8` | 백 G1 → 흑 E8 승리 |
+| dev-forbidden-v1 | 8수 `g8a1h7c1i8e1h9g1` | 흑 H8 삼삼 반칙패 |
+| dev-draw-199-v1 | 자체 줄무늬 패턴에서 교대 생성 | 백 E14로 200수 무승부 |
+| dev-finished-v1 | 9수 `a8a1b8c1c8e1d8g1e8` | 이미 흑 승리, 입력 금지 |
 
-미커밋 소스/설정 파일:
+## 실제 명령과 결과
 
-- `src/match/CMakeLists.txt`, `src/match/controller.cpp`, `src/match/development_positions.cpp`, `src/match/forbidden.cpp`
-- `src/match/include/omok/match/controller.hpp`, `development_positions.hpp`, `forbidden.hpp`
-- `src/gui/CMakeLists.txt`, `src/gui/main_window.cpp`, `src/gui/board_geometry.hpp`, `src/gui/board_geometry.cpp`
-- `tests/CMakeLists.txt`, `tests/match_tests.cpp`
-
-## 기술과 중요한 계약
-
-기존 C++20·Win32 User32/GDI32·CMake·MinGW x64/Ninja 및 `scripts/build.ps1`의 ASCII junction 우회를 유지했다. match는 GUI/Windows에 의존하지 않는 정적 라이브러리다. 스냅샷 기반 금수 작업자는 표준 C++ 스레드와 CMake Threads를 사용한다. 좌표 변환은 Windows에 독립적인 `omok_geometry`로 분리해 자동 테스트한다. 별도 GUI 프레임워크·데이터 의존성은 추가하지 않았다.
-
-- Controller는 원본 opening::Session 전체와 진행 중 GameState를 보존한다. 비어 있지 않은 PreparedRenju의 RenjuReady/Terminal만 시작 대상으로 받는다. 빈 보드 시작이나 미결 Swap2의 렌주 연결을 추가하지 않았다.
-- 일반 착수는 현재 Token(세션·revision), 참가자, 다음 색 소유자를 확인하고 rules::evaluate를 사용한다. 구조 오류는 Controller 전체를 보존한다. 성공 시에만 사본을 공개한다.
-- 흑 금수는 반칙패로 끝낸다. 실패 입력에 대한 재시도 정책이 아니다. 금수 시도 좌표/이유는 종료 이벤트에 기록하고, 시도한 돌은 보드·성공한 배치 이력에 추가하지 않는다. 근거는 기존 고정 심판의 처리와 [RIF 규칙](https://www.renju.net/rifrules/) 9.2다. 정확한 흑 5목 등의 판정 우선순위는 기존 rules를 따른다.
-- 기권은 진행 중인 유효 참가자에게 허용한다. GUI 버튼은 현재 차례 참가자의 기권을 요청한다. 재시작은 원래 준비 세션으로 복원하고 새 세션 ID를 발급한다. 이전 입력은 거부한다.
-- 현재 match 이벤트는 현재 세션만 보관한다. 원본 오프닝 이벤트와 데이터 ID는 유지하지만 이전 대국의 영구 보관이나 기보 파일 기능은 없다.
-- 금수 분석은 원본 상태를 공유하지 않는다. 대기 작업을 최신 요청으로 합치며 취소는 후보 좌표 사이에서 확인한다. 재귀 판정을 생략하지 않는다. 작업자 종료 시 현재 단일 후보 판정을 기다릴 수 있으므로 최악 종료 지연은 미검증이다.
-- GUI는 match에 입력하고 공개 상태만 표시한다. 매 그리기마다 전체 금수 판정을 실행하지 않는다. 캐시 수용/표시 시 Token을 확인하고 실제 착수는 최신 match에서 다시 판정한다.
-
-## 시작 배치와 출처
-
-`src/match/development_positions.cpp`의 다음 배치는 프로젝트에서 직접 작성한 **개발 확인용 배치**다. 공식 대회 오프닝·전략·공식 데이터 대체 규칙으로 소개하지 않는다. GUI에도 개발용과 시간/자원 제한 미구현을 표시한다.
-
-| ID | compact 또는 생성 방식 | 용도 |
-|---|---|---|
-| dev-basic-v1 | `h8i8g9` | 3수 준비 상태 |
-| dev-win-v1 | `a8a1b8c1c8e1d8` | 백 G1, 흑 E8로 승리 확인 |
-| dev-forbidden-v1 | `g8a1h7c1i8e1h9g1` | 흑 H8 금수패 확인 |
-| dev-draw-199-v1 | 행/열의 줄무늬 패턴에서 흑·백을 번갈아 199수 생성 | 다음 정상 백 착수로 200수 무승부 |
-| dev-finished-v1 | `a8a1b8c1c8e1d8g1e8` | 이미 종료된 배치 표시/입력 차단 |
-
-공식 15×15 렌주 준비 데이터와 재배포 허가는 여전히 미확보다. 외부 데이터는 새로 동봉하지 않았다. compact는 열 a..o, 행 1..15이며 상태 좌표는 row/column 0..14다. 준비 돌의 placed_by는 nullopt, 실제 일반 착수는 A/B를 기록한다. 최종 참가 연도·리그는 미정이다.
-
-## 실제 빌드·테스트와 결과
-
-현재 Windows 호스트의 GCC 13.3.0·MinGW-w64 11.0.1·CMake 3.29.3·Ninja 1.12.1에서 다음 명령을 실행했다.
+Windows 호스트, GCC13.3.0·MinGW-w64 11.0.1 POSIX/SEH·CMake3.29.3·Ninja1.12.1.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -AliasParent "$env:TEMP\omok-rules-build"
+$matchAliasParent = Join-Path $env:TEMP 'omok-rules-build'
+New-Item -ItemType Directory -Force -Path $matchAliasParent | Out-Null
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -AliasParent $matchAliasParent
 ctest --test-dir .\build\native-release --output-on-failure --no-tests=error
 .\build\native-release\bin\omok_match_tests.exe benchmark
+Get-FileHash -LiteralPath build/native-release/bin/omok.exe,dist/omok/omok.exe -Algorithm SHA256
+& 'C:/Program Files/mingw64/bin/objdump.exe' -p .\dist\omok\omok.exe | Select-String 'DLL Name'
 ```
 
-1. 작업 시작 시 기존 빌드·install과 67/67 테스트 통과.
-2. match·GUI 추가 후 빌드·install 성공, 80/80 테스트 통과. 이때 초기화 누락/숫자 변환 경고를 확인해 이후 소스에서 수정했다.
-3. 초기 GUI에서 상단 열 표기와 안내의 겹침·얇은 격자를 확인했다. 보드 상단 여백을 200 논리 픽셀로 늘리고 격자 두께에 DPI를 반영했다.
-4. 위 수정 후 마지막 빌드의 **컴파일·링크는 성공했고 컴파일 경고 출력은 없었다. install은 실행 중인 `dist/omok/omok.exe`의 파일 잠금으로 Permission denied, Install staging failed: 1로 실패했다.** 빌드 스크립트 전체 성공으로 표시하지 않는다. `build/native-release/bin/omok.exe`와 배포 폴더의 실행 파일이 같다고 가정하지 않는다.
-5. **2026-10-24 인계 갱신 시 최신 빌드의 CTest를 다시 실행해 80/80 통과**했다. 총 2.44초. 기준: 상태 14·규칙 39·오프닝 14·match 13. GUI 수동 조작 성공을 뜻하지 않는다.
-6. 같은 인계 갱신 시 benchmark 재실행 성공. 전체 225개 후보 검사, 각 10회, 단위 ms:
+- 기존 앱을 정상 Alt+F4로 닫아 파일 잠금을 해소했다. 처음 AliasParent 부재·제한 환경 junction Access denied를 기록했고, 디렉터리 생성과 권한 검토 후 같은 스크립트로 성공했다. 강제 종료/삭제를 사용하지 않았다.
+- **최종 configure·컴파일·링크·install 모두 성공(0), 컴파일 경고 출력 없음.** build/dist SHA-256은 `5A42F0893044D64304D5B3726CE7744C3AE1F06EDC57A1BFE3974F6C70F9457D`로 일치한다.
+- **최종 CTest 81/81 통과**, 2.86초. 상태14·규칙39·오프닝14·match14. 부분 취소와 40회 작업자 수명 검사 포함. 이후 실행 코드 변경 없음. 생성 로그는 `build/match-final-ctest.txt` 및 CTest LastTest.log이며 Git 제외다.
+- 금수 225칸 순회 각10회 평균: 기본3수 0.076260ms, 위협8수 0.078660ms, 합성밀집59수 0.058340ms. 최악 재귀 시간·GUI 반응성을 보증하지 않는다. 작업자40회 검사 666.254ms는 전체 회귀 수행 시간이다.
+- DLL은 GDI32/KERNEL32/msvcrt/USER32만 요구한다. nm로 정적 pthread_create/join을 확인하고 `licenses/winpthreads-NOTICES.txt`를 추가해 install했다. 최종 고지/원문 해시도 일치했다. 별도 libwinpthread DLL은 필요 없다. 배포 고지와 licenses 폴더를 함께 유지한다.
 
-| 배치 | 돌 수 | 최소 | 평균 | 최대 |
-|---|---:|---:|---:|---:|
-| basic_3 | 3 | 0.052900 | 0.060330 | 0.079000 |
-| cross_threat_8 | 8 | 0.061400 | 0.066280 | 0.084400 |
-| dense_synthetic | 59 | 0.044000 | 0.050980 | 0.067400 |
+## GUI 관찰·남은 문제
 
-밀집 배치는 합성 분석 입력이며 합법 수순으로 도달 가능한 대국을 보증하지 않는다. 이 측정은 최악 성능·실제 GUI 반응성 보증이 아니다.
+첫 성공 install의 앱 실행·개발용 안내·선택 컨트롤·시작 대기0수와 기본 켬 체크를 관찰했다. 창 위치/캡처가 불안정했으며 시작/입력은 도구의 `window bounds changed`와 `user input was detected in this window` 오류가 반복돼 성공을 확인하지 못했다. 재관찰/재시도 뒤 입력 검증을 중단했다. 이번에는 과거의 물리 Escape 중단과 달리 해당 중단 메시지를 받지 않았다.
 
-match 테스트는 시작 계약, 정상 교대, 구조 오류와 전체 보존, 승리/금수패/200수 무승부, 기권, 재시작과 오래된 입력, 닫기, 좌표/DPI/리사이즈 계산, 금수 캐시, 작업자 교체/취소를 검증한다. 이 작업에서 고정 심판 비교를 재실행하지는 않았다. 과거 [규칙 검증](verification-rules.md)·[오프닝 검증](verification-opening.md)의 결과를 현재 GUI·전체 매니저 검증으로 확대하지 않는다.
+**미검증:** 실제 시작·여러 수·승리/금수패/무승부·종료 배치·기권/재시작·잘못된 compact 보존·표시 토글/캐시 갱신·리사이즈 클릭·수정된 여백/격자. 해당 자동 테스트 통과를 GUI 통과로 대신하지 않는다. 최종 재빌드 파일의 전체 수동 확인도 남았다. 항목별 상태·정확한 배치/착수 좌표·예상 결과·DPI96 픽셀 재현 예시는 [수동 확인 절차](verification-match.md)에 있다.
 
-## GUI 확인과 중단 지점
+대기 상태 정상 닫기 후 Get-Process에서 omok가 남지 않음을 확인했다. 작업자 취소/교체/join은 자동 검증했지만, 복잡한 금수 계산 중 실제 창 닫기·최악 후보의 종료 지연·장시간 자원 누수는 미검증이다. 후보 내부 재귀는 정확성을 위해 생략하지 않으므로 한 후보 완료까지 종료가 지연될 수 있다. 캡처/입력 도구 오류를 앱 결함으로 확정하지 않았다. 새로 재현한 게임 로직 결함은 없으나 미검증 GUI의 결함 부재를 보증하지 않는다.
 
-실제 실행 파일에서 로컬 대국 창, 15×15 대기 보드, 개발용 안내, 시작 배치/색 선택 컨트롤, 기본 켬인 금수 체크, 대기 상태를 확인했다. 시작 버튼 시도 중 창 위치 변경·사용자 입력 충돌이 발생해 **대국 시작 성공은 확인하지 못했다.** 최대화 동작은 수행했지만 리사이즈·DPI 전체 검증으로 보지 않는다.
+## 다음 작업
 
-이후 사용자가 물리 Escape 키로 Computer Use를 중단해 자동 GUI 조작을 멈췄다. 이번 인계 갱신에서는 GUI 조작을 재개하지 않았다. 시작→여러 수→종료→재시작, 기권, 금수 전환, 실제 클릭 좌표, 닫기, 최신 여백/격자 수정 화면은 미검증이다. 실행 파일이 계속 열려 있을 수 있으며 설치 실패의 원인이다.
+1. 작업 브랜치/원격과 추적된 구현을 확인한다. 이전의 “문서만 원격에 있음” 상태는 WIP 저장으로 해소됐다.
+2. 사용자 입력과 충돌하지 않는 GUI 환경에서 검증 기록의 표를 따라 실제 클릭·각 종료 경로·리사이즈·닫기를 확인한다. 입력 중단 신호를 받으면 즉시 멈추며 자동 재개하지 않는다.
+3. 발견한 문제만 수정하고 필요한 회귀/빌드를 수행한다. 결과를 verification-match와 이 인계에 갱신한 뒤 검증된 작업을 커밋·푸시한다.
+4. 수동 대국 완료 기준을 충족한 뒤 기존 이력을 보존하는 main 통합을 진행한다. 현재는 **로컬 사람 대 사람 단계 전체 미완료**이며 main 미반영이다.
+5. 외부 AI용 match/Token 경계는 마련됐지만 단계 전환 완료 판정은 보류한다. 수동 GUI 확인과 별도로 실제 엔진/매니저·시간/자원·오류 정책·프로토콜 로그 검증이 이후 필요하다. 이번 작업에 AI 기능을 추가하지 않았다.
 
-## 남은 문제와 다음 작업
-
-1. 현재 브랜치와 모든 미커밋/미추적 소스를 보존한다. 문서 체크포인트만 원격에 있으므로 다른 환경에서 이 문서만 받아 구현이 있다고 가정하지 않는다.
-2. 실행 중인 앱을 정상 종료하고 기존 빌드 명령을 다시 실행해 **install까지 성공**하는지 확인한다. DLL 의존성·배포 파일·스레드 추가에 따른 배포 영향도 검사한다. 기존 ASCII 경로 우회는 유지한다.
-3. 수동 GUI 검증을 재개할 사용자 지시 후 최신 실행 파일로 위 미검증 동작을 확인한다. 금수패/승리/무승부/이미 종료된 배치, 잘못된 가져오기 시 기존 대국 보존, 닫기와 작업자 정리를 포함한다. GUI 문제를 수정하면 관련 테스트도 재실행한다.
-4. 상태 변경·금수 캐시 계약과 구현을 검토하고 관련 문서·검증 기록·README·AGENTS.md를 갱신한다. 현재 문서의 “기본 창만 구현”과 match INTERFACE/67개 표기는 오래된 부분이다. 최신 승인에 맞춰 바로잡아야 한다.
-5. 소스 작업 단위 검증을 마친 뒤 관련 코드/문서만 커밋·일반 푸시한다. 기존 Git 정책에 따라 main 통합 전 상태를 확인하고 이력을 보존한다. 강제 푸시·브랜치 삭제·변경 폐기는 하지 않는다.
-6. 외부 AI 연동은 match 경계와 stale Token을 활용할 수 있지만 **로컬 GUI 단계 완료/외부 AI 단계 준비 완료로 아직 보고하지 않는다.** 수동 대국·배포 검증과 계약/문서 정리가 먼저다.
-
-계속 미구현: Swap2 GUI·규칙 연결, AI 통신/프로세스·두 AI 대국 방식, 대회 시계·자원 강제, 기보 파일/복기, 자체 AI. MSVC, 개발 도구 없는 별도 Windows 10/11, 장시간 자원 누수, 최악 재귀 성능도 미검증이다. 시간·자원 제한이 없으므로 대회 설정 전체 준수를 주장하지 않는다.
-
-## 2026-10-24 검증 재개 체크포인트
-
-사용자가 WIP 소스 보존·빌드/install 해결·수동 GUI 검증 재개를 승인했다. 인계에 나열된 소스/헤더/CMake/테스트가 모두 존재함을 확인했다. 이번 체크포인트는 관련 구현을 함께 추적하는 WIP 커밋이며 최종 검증 완료나 main 완료를 뜻하지 않는다. 이후 결과는 최종 인계에서 갱신한다.
+MSVC, 개발 도구 없는 별도 Windows10/11, ZIP 재생성, 전체 엔진/매니저, 공식 데이터, 최종 연도/리그, Swap2 규칙 바인딩은 여전히 미검증/미확정이다. 현재 결과를 Gomocup 대회 전체 준수로 표시하지 않는다.

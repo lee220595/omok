@@ -1,6 +1,6 @@
 # 오목 프로젝트 (omok)
 
-Windows 10·11 64비트용 C++ 게임 프로젝트. 현재 버전 0.1.0의 GUI는 **기본 창만 실행**한다. GUI/Windows 독립 상태·렌주·오프닝 라이브러리와 CTest 67개를 구현했다. 준비 배치 로더·순차 복원·종료/본게임 인계와 별도 Swap2 상태 전환이 있다. 바둑판 화면·전체 대국 제어·기보·외부 AI·자체 AI는 아직 미구현이다. 기본은 Gomocup 렌주 일반 대회 잠정 기준이며 참가 연도·리그는 추후 선정한다.
+Windows 10·11 64비트용 C++ 게임 프로젝트. 현재 버전 0.1.0에는 개발 확인용 준비 배치로 시작하는 로컬 사람 대 사람 대국 코드가 있다. match·Win32 보드·클릭 착수·승리/금수패/200수 무승부·기권·재시작·비동기 금수 표시와 자동 테스트를 구현했다. **실제 GUI 대국 수동 검증이 남아 이 단계 전체는 미완료다.** [검증 기록과 수동 절차](docs/verification-match.md)를 따른다. 기보·외부 AI·대회 시계/자원 강제·자체 AI는 미구현이다. 기본은 Gomocup 렌주 일반 대회 잠정 기준이며 참가 연도·리그는 추후 선정한다.
 
 ## 준비와 확인
 현재 컴퓨터에서는 다음 도구를 확인했다. 추가 설치 없이 MinGW 빌드 가능하다.
@@ -62,8 +62,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -Ali
 - `build/native-release/bin/omok_state_tests.exe`: CTest가 실행하는 상태 테스트(배포 폴더에는 넣지 않음)
 - `build/native-release/bin/omok_rules_tests.exe`: 규칙 회귀 테스트·선택적 심판 비교 입력기(배포 폴더에는 넣지 않음)
 - `build/native-release/bin/omok_opening_tests.exe`: 준비 오프닝·Swap2 회귀와 선택적 심판 스냅샷 비교(배포 폴더에는 넣지 않음)
+- `build/native-release/bin/omok_match_tests.exe`: match·좌표·금수 캐시/작업자 회귀 및 benchmark(배포 폴더에는 넣지 않음)
 - `dist/omok/`: 실행 파일·README·외부 고지·라이선스가 모인 배포 준비 폴더
-- 창 제목은 “오목 프로젝트”. 기본 안내문이 표시되며 닫기(X)나 Alt+F4로 종료한다.
+- 창 제목은 “오목 프로젝트 · 로컬 대국”. 닫기(X)나 Alt+F4로 정상 종료한다.
 
 재빌드·실행 파일 교체 전에는 실행 중인 창을 닫는다. 그렇지 않으면 Windows 파일 잠금으로 링크가 실패할 수 있다. 빌드 스크립트가 실행 중인 앱을 임의 종료하지는 않는다. 스크립트는 이전 실패 경로가 남은 `.ninja_deps`·`.ninja_log` 두 생성 파일만 정리하고 새 CMake 구성을 수행한다.
 
@@ -73,7 +74,17 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -Ali
 Compress-Archive -Path .\dist\omok\* -DestinationPath .\dist\omok-0.1.0-windows-x64.zip -Force
 ```
 
-생성한 ZIP은 개발용 기본 창이다. 게임 완성본·대회 제출 엔진으로 소개하지 않는다. 사용자 실행에는 CMake·GCC·Ninja가 필요 없도록 현재 MinGW 런타임을 정적 링크했으며, 실제 DLL 검사 결과와 대상 OS 미검증 범위는 [검증 기록](docs/verification-foundation.md)을 참고한다.
+생성한 ZIP은 수동 대국 검증이 남은 개발용 프로그램이다. 게임 완성본·대회 제출 엔진으로 소개하지 않는다. 현재 MinGW의 GCC·winpthreads 런타임은 정적 링크하고 필요한 고지를 함께 install한다. DLL 검사와 대상 OS 미검증 범위는 [최신 검증](docs/verification-match.md)을 참고한다.
+
+### 로컬 대국 사용법
+
+1. “개발 확인용” 준비 배치와 흑 A/백 B 또는 흑 B/백 A를 선택하고 **시작**을 누른다. 기본 3수 `h8i8g9`에서는 다음 차례가 백이다. 시작 전 참가자 색은 미배정이다.
+2. 보드 교차점을 클릭하면 현재 참가자의 수가 즉시 확정된다. 오른쪽에서 차례·총 수순·마지막 수·결과를 확인한다. 판 밖/교차점 사이/중복 입력은 거부한다. 흑 금수 클릭은 **백 승리로 종료**하며 재입력하지 않는다.
+3. “현재 차례 기권”은 해당 참가자의 패배로 종료한다. **재시작**은 원래 준비 배치와 색 배정으로 돌아간다. 종료 후 추가 착수는 막는다.
+4. “흑 금수 표시”는 기본 켬이며 흑 차례에만 빈 교차점의 금수를 붉은 X로 표시한다. 계산 중에도 착수를 요청할 수 있고 실제 판정은 최신 상태로 수행한다. 마지막 성공 착수는 붉은 원이다.
+5. compact 입력을 직접 바꿔 시작할 수 있다. 형식/중복/순서/금수 등으로 가져오기에 실패하면 진행 중 대국을 보존하고 원인을 표시한다. 빈 보드 시작은 제공하지 않는다.
+
+기본 3수 외에 승리 7수·금수 8수·무승부 199수·이미 종료된 9수 배치가 있다. 모두 자체 작성한 개발용이며 공식 오프닝이 아니다. 수동 확인용 착수 좌표와 예상 결과는 [검증 절차](docs/verification-match.md)에 있다. 시간/자원 제한·외부 AI·Swap2 GUI·기보/복기는 현재 제공하지 않는다.
 
 ### CMake 프리셋과 MSVC 대안
 ASCII 전용 소스 경로에서는 `cmake --preset mingw-release`, `cmake --build --preset mingw-release`도 사용할 수 있다. **현재 한글 폴더에서는 위 빌드 스크립트가 검증 경로**다. 실패한 최초 `build/mingw-release` 캐시는 사용하지 않는다.
@@ -90,15 +101,15 @@ cmake --install .\build\msvc-release --config Release --prefix .\dist\omok-msvc
 ## 프로젝트 구성
 ```text
 src/app/      실행 진입점·manifest
-src/gui/      기본 Win32 창
+src/gui/      Win32 보드·입력·상태 표시, 독립 픽셀/좌표 변환
 src/state/    15×15 상태·좌표·색 배정·이력·결과 저장 모델
 src/rules/    순수 렌주·구조 검사·일반 대국 200수 정책
 src/opening/  준비 배치 로더·순차 복원·인계·독립 Swap2 전환
-src/match/    대국·시간 제어 경계(미구현)
+src/match/    대국 제어·기권·재시작·버전, 금수 스냅샷 작업자(시계 미구현)
 src/ai/       외부 AI 프로세스·통신 경계(미구현)
 src/records/  기보·복기 경계(미구현)
 scripts/      재현 가능한 빌드
-tests/        CTest 상태·규칙·오프닝과 자체 테스트 배치
+tests/        CTest 상태·규칙·오프닝·match와 자체 테스트 배치
 docs/         계획·기술 결정·조사·검증
 licenses/     배포용 외부 라이선스 원문
 ```
@@ -111,13 +122,13 @@ licenses/     배포용 외부 라이선스 원문
 ctest --test-dir .\build\native-release --output-on-failure --no-tests=error
 ```
 
-현재 Release 빌드에서 **67/67 통과**했다(상태 14·규칙 39·오프닝 14). CHECK는 NDEBUG와 관계없이 동작한다. 상태·규칙·오프닝과 테스트는 Windows 헤더·GUI 링크를 사용하지 않는다. 다만 루트 프로젝트는 기존 Windows x64 전용 구성을 유지하며 비Windows 빌드를 검증한 것은 아니다.
+현재 등록 수는 **81개**(상태 14·규칙 39·오프닝 14·match 14)이며 실제 최종 결과는 [최신 검증](docs/verification-match.md)에 기록한다. CHECK는 NDEBUG와 관계없이 동작한다. 상태·규칙·오프닝·match 및 좌표 테스트는 Windows 헤더·GUI 링크를 사용하지 않는다. 다만 루트 프로젝트는 기존 Windows x64 전용 구성을 유지하며 비Windows 빌드를 검증한 것은 아니다.
 
 좌표는 `Coordinate{row, column}`, 왼쪽 위가 `(0,0)`이며 두 축은 0~14다. 상태 변경은 구조적 유효성을 검사하고 실패 시 전체 상태를 보존한다. 다음 돌 색은 호출자가 명시하며, 참가자 A/B·색·자신/상대·실제 배치 참가자를 구분한다. `finish`는 외부 판정 결과를 기록할 뿐 승패를 판정하지 않는다. 자세한 책임과 변환 경계는 [상태 모델 계약](docs/state-model.md)을 따른다. 이 API를 대국 제어 없이 GUI/AI 입력에 직접 연결하지 않는다.
 
-규칙은 승리·장목·사사·재귀적 삼삼 예외·만판·준비 배치 포함 200수 경계를 판정하며 원본을 변경하지 않는다. 준비 복원은 순서대로 이 판정을 사용해 결과를 기록한다. 일반 대국의 권한·판정 적용·반칙패 제어는 아직 없다. 상태 자체가 선이나 수순으로 자동 종료하지 않는 저장 계약은 유지한다. API는 [규칙 명세](docs/rules-spec.md)·[사례 명세](docs/renju-cases.md)를 따른다.
+규칙은 승리·장목·사사·재귀적 삼삼 예외·만판·준비 배치 포함 200수 경계를 판정하며 원본을 변경하지 않는다. 준비 복원은 순서대로 이 판정을 사용해 결과를 기록한다. 일반 대국의 권한·사본 적용·금수패 처리는 [match](docs/match-contract.md)가 담당한다. 상태 자체가 선이나 수순으로 자동 종료하지 않는 저장 계약은 유지한다. API는 [규칙 명세](docs/rules-spec.md)·[사례 명세](docs/renju-cases.md)를 따른다.
 
-준비 로더의 입력은 고정 심판 client compact position(예: `h8i8g9`)이다. 문자=열 0~14, 숫자=행+1이며 내부 수순 1부터 흑/백으로 복원한다. 외부 준비 돌의 `placed_by`는 nullopt, 직접 둔 돌은 실제 A/B다. 실패 시 메타데이터·이벤트를 포함한 세션 전체를 보존한다. 공식 렌주 데이터와 사용/재배포 조건은 미확보여서 자체 테스트 배치만 사용하며 제품에 install하지 않는다. 이를 공식 대회 배치로 소개하지 않는다.
+준비 로더의 입력은 고정 심판 client compact position(예: `h8i8g9`)이다. 문자=열 0~14, 숫자=행+1이며 내부 수순 1부터 흑/백으로 복원한다. 외부 준비 돌의 `placed_by`는 nullopt, 직접 둔 돌은 실제 A/B다. 실패 시 메타데이터·이벤트를 포함한 세션 전체를 보존한다. 공식 렌주 데이터와 사용/재배포 조건은 미확보다. 외부 데이터나 테스트 fixture는 install하지 않고 GUI 코드에 직접 작성한 개발용 배치 다섯 가지를 제공한다. 공식 대회 배치로 소개하지 않는다.
 
 Swap2는 기본 준비 렌주와 분리된 상태 기계다. 네 선택 경로의 색·차례·주체를 관리하지만 규칙 연결은 미결로 남겨 완료 후 `RuleContractRequired`를 반환한다. 렌주·200수에 자동 연결하거나 GUI·문자열 통신을 구현하지 않았다. 전체 스냅샷·이벤트·본게임 진입 계약은 [오프닝 계약](docs/opening-contract.md)을 따른다.
 
@@ -148,6 +159,7 @@ python .\scripts\compare_opening.py --fetch --output .\docs\verification\opening
 
 - [개발 지침](AGENTS.md) · [승인 기록](docs/requirements-pending.md)
 - [다음 단계 개발 인계](docs/handoff.md)
+- [로컬 대국·좌표·금수 작업자 계약](docs/match-contract.md) · [실제 검증·남은 수동 절차](docs/verification-match.md)
 - [상태 모델 API·좌표 계약](docs/state-model.md) · [상태 구현 검증](docs/verification-state.md)
 - [규칙 계약](docs/rules-spec.md) · [판정 사례](docs/renju-cases.md) · [규칙·심판 대조 검증](docs/verification-rules.md)
 - [오프닝 계약](docs/opening-contract.md) · [오프닝 구현·실제 비교 검증](docs/verification-opening.md)

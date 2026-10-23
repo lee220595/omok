@@ -242,6 +242,11 @@ void hints()
     CHECK(!cancelled.complete && !cache.accept(cancelled, c.token(), true));
     cancelled.complete = true; cancelled.failed = true;
     CHECK(!cache.accept(cancelled, c.token(), true) && !cache.value());
+    int visited = 0;
+    const auto partial = mt::compute_forbidden({c.token(), c.game()}, [&] { return ++visited == 10; });
+    CHECK(visited == 10 && !partial.complete);
+    CHECK(!cache.accept(partial, c.token(), true) && !cache.value());
+    CHECK(c == before); // cancellation of a partially scanned board is read-only too
 }
 void worker()
 {
@@ -261,6 +266,30 @@ void worker()
     worker.submit({{3, 0}, dense_board()});
     worker.cancel();
     CHECK(!worker.take_result());
+}
+void worker_lifecycle()
+{
+    const auto game = dense_board();
+    const auto before = game;
+    const auto start = std::chrono::steady_clock::now();
+    for (std::uint64_t n = 1; n <= 40; ++n) {
+        mt::HintWorker worker;
+        worker.submit({{n, 0}, game});
+        worker.cancel();
+        const mt::Token latest{n, 1};
+        worker.submit({latest, game});
+        std::optional<mt::HintResult> result;
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        while (!result && std::chrono::steady_clock::now() < deadline) {
+            result = worker.take_result();
+            if (!result) { std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
+        }
+        CHECK(result && result->complete && !result->failed && result->token == latest);
+        worker.submit({{n, 2}, game}); // destruction with queued or running work must join safely
+    }
+    CHECK(game == before);
+    std::cout << "worker_lifecycle_iterations=40 elapsed_ms="
+        << std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count() << '\n';
 }
 void benchmark()
 {
@@ -299,6 +328,7 @@ int main(int argc, char** argv)
         else if (name == "geometry") { geometry(); }
         else if (name == "hints") { hints(); }
         else if (name == "worker") { worker(); }
+        else if (name == "worker_lifecycle") { worker_lifecycle(); }
         else if (name == "benchmark") { benchmark(); }
         else { return 2; }
         return 0;

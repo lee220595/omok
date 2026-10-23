@@ -3,6 +3,6 @@
 #include <windows.h>
 
 namespace omok::gui {
-// Owns only the native window and message loop. Game logic belongs to other modules.
+// Owns presentation, input routing and a snapshot-based hint worker; Controller owns the game.
 int run(HINSTANCE instance, int show_command);
 }
