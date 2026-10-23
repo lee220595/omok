@@ -11,6 +11,17 @@ foreach(case IN ITEMS initial_state coordinates boundaries rejected_requests col
     set_tests_properties(state.${case} PROPERTIES TIMEOUT 10 LABELS state)
 endforeach()
 
+add_executable(omok_match_tests match_tests.cpp)
+target_link_libraries(omok_match_tests PRIVATE omok_match omok_geometry)
+omok_compiler_options(omok_match_tests)
+if(MINGW)
+    target_link_options(omok_match_tests PRIVATE -static -static-libgcc -static-libstdc++)
+endif()
+foreach(case IN ITEMS start_contract turns rejected win forbidden draw resignation restart_stale close geometry hints worker benchmark)
+    add_test(NAME match.${case} COMMAND omok_match_tests "${case}")
+    set_tests_properties(match.${case} PROPERTIES TIMEOUT 30 LABELS match)
+endforeach()
+
 add_executable(omok_opening_tests opening_tests.cpp)
 target_link_libraries(omok_opening_tests PRIVATE omok_opening)
 omok_compiler_options(omok_opening_tests)

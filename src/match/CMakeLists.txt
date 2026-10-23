@@ -1,3 +1,6 @@
-# Reserved boundary: input requests, clocks, completion, cancellation.
-add_library(omok_match INTERFACE)
-target_link_libraries(omok_match INTERFACE omok_state omok_rules omok_opening)
+find_package(Threads REQUIRED)
+add_library(omok_match STATIC controller.cpp forbidden.cpp development_positions.cpp)
+target_include_directories(omok_match PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(omok_match PUBLIC omok_opening Threads::Threads)
+target_compile_features(omok_match PUBLIC cxx_std_20)
+omok_compiler_options(omok_match)

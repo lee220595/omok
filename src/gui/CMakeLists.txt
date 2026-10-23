@@ -1,3 +1,7 @@
+add_library(omok_geometry STATIC board_geometry.cpp)
+target_include_directories(omok_geometry PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(omok_geometry PUBLIC omok_state)
+omok_compiler_options(omok_geometry)
 add_library(omok_gui STATIC main_window.cpp)
 target_include_directories(omok_gui PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(omok_gui PRIVATE user32 gdi32)
+target_link_libraries(omok_gui PRIVATE omok_match omok_geometry user32 gdi32)
