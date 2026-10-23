@@ -120,6 +120,7 @@
 - 개발 도구가 없는 대상 환경에서 실행. 모의 AI 검증과 실제 엔진 검증을 별도 보고.
 
 ## 문서와 완료 보고
+- 각 작업을 마치고 완료 보고를 보내기 전에 [인계 문서](docs/handoff.md)를 현재 코드와 작업 상태에 맞게 갱신한다. 변경 사항, 실제 실행한 빌드·테스트와 결과, 미검증 항목과 이유, 알려진 문제·미확정 사항, 다음 작업, 작업 브랜치와 커밋·푸시 상태를 기록한다. 작업이 미완료 상태로 중단되는 경우에도 중단 지점과 남은 작업을 저장하며, 미검증 내용을 완료로 표시하지 않는다. 최종 커밋 ID는 완료 보고에 기록해 문서 갱신만을 위한 반복 커밋을 만들지 않는다.
 - 실제 빌드·실행 절차는 [README](README.md)를 따른다. 현재 한글 경로의 기본 빌드 명령은 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1`, 실행 파일은 `dist/omok/omok.exe`다. 빌드 스크립트는 임시 ASCII junction으로 MinGW의 경로 문제를 회피한다. 검증 결과는 기반 검증 기록에 남긴다.
 - 기본 빌드에서 BUILD_TESTING이 켜지며 `ctest --test-dir .\build\native-release --output-on-failure --no-tests=error`로 상태·규칙 테스트를 실행한다. 빈 타깃·등록되지 않은 테스트를 통과로 보고하지 않는다. MSVC·클린 대상 OS 검증은 여전히 미완료이며 실제 검증 범위를 README에 구분한다.
 - 기존 TEMP junction이 예상 대상과 다르면 삭제하지 말고 다른 ASCII 디렉터리를 `-AliasParent`로 지정한다. 2026-10-23 검증에서는 `$env:TEMP\omok-rules-build`를 생성·사용했다. 스크립트 자체는 변경하지 않았다. Python은 선택적 심판 대조에만 필요하며 GUI·기본 빌드·CTest에는 필요 없다.
