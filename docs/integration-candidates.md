@@ -1,6 +1,6 @@
 # 매니저·외부 AI 후보와 호환성 결정
 
-조사일 2026-10-19. 공식 제작자 저장소·문서를 사용했다. 원격 실행 파일·엔진·모델은 설치·실행하지 않았다. 일부 소스는 build/research에 조사 캐시로만 내려받았으며 제품이나 배포물에 포함하지 않는다.
+최초 조사일 2026-10-19, 후속 규칙 검증 2026-10-23. 공식 제작자 저장소·문서를 사용했다. 원격 엔진 바이너리·모델은 설치·실행하지 않았다. GomocupJudge의 원본 Python 판정 함수·대국 루프만 고정 입력으로 실행했다. 일부 소스는 build/research에 조사 캐시로 내려받았으며 제품이나 배포물에 포함하지 않는다.
 
 ## 소스 기준점
 | 저장소 | 확인한 커밋 |
@@ -15,7 +15,7 @@
 | 후보 | 문서·소스 확인 | 연결·배포 판단 | 실제 검증 |
 |---|---|---|---|
 | Piskvork, 우선 검증 후보 | 제작자 안내에 렌주·자동 오프닝·파이프 로그·AI 대 AI 배치 실행·CPU affinity·시간·메모리 설정. protocol.cpp에 CreatePipe/CreateProcess, affinity와 프로세스 관리 코드 | GUI 내부 라이브러리로 포함하지 않고 별도 검증 도구로 먼저 사용 제안. 일반적인 별도 GUI용 제어 API는 확인 못함. protocol.cpp는 GPL-3.0-or-later 명시. 수정·코드 포함·재배포 시 GPL 의무 확인 | 미실행. 200수 제한·Swap2·심판 예외·시간/메모리 단위와 경로 인코딩은 대상 버전으로 검증 필요 |
-| GomocupJudge, 대회 심판 비교 후보 | 공식 README에 client의 엔진 실행·자원 감시·심판, server의 대회 관리. client README는 실제 구성·통신 역할 설명 | Python 기반 별도 도구. 저장소 트리와 API metadata에서 명시적 LICENSE/COPYING·SPDX를 찾지 못함. 허가 없이 코드 편입·수정 재배포하지 않음. 외부 GUI 연결 계약도 미확인 | 미실행. 심판 판정·200수 경계·Windows 의존성·실행 절차 후속 검증 |
+| GomocupJudge, 규칙 비교 대상으로 선정 | 공식 README의 심판 역할 및 고정 소스 check_forbid.py·ai_match.py 확인 | check_forbid.py 개별 파일에 GPL-3.0-or-later 명시. 루트 LICENSE/COPYING·다른 파일의 통일 조건은 미확인. 소스 편입·재배포 없이 외부 검증에만 사용. GUI 연결 미확인 | 실제 판정 함수·대국 루프를 고정 입력으로 대조. 전체 client/server·AI 프로세스·시간/자원/프로토콜은 미검증. [기록](verification-rules.md) |
 
 근거:
 - [Piskvork 제작자 설명·라이선스·CLI](https://github.com/plastovicka/Piskvork/blob/2c3296514a3735cad83eed8a3134f51324f962ca/piskvork.txt)
@@ -48,3 +48,5 @@ Piskvork 문서의 일부 시간·메모리 CLI 설명에는 단위 표현이 �
 6. 모의 AI로 형식 오류·무응답·종료·불법 수를 먼저 시험하고 Rapfi·Piskvork 후보로 실제 로그와 대국 결과를 비교한다. 불일치 시 승인된 중단·기록·결과 미확정 정책을 적용한다.
 
 현재 기본 창의 완성을 매니저 채택·Gomocup 호환 완료·대회 규칙 일치로 표시하지 않는다. 참가 연도·리그를 선정할 때 공식 공고를 다시 확인한다.
+
+2026-10-23 규칙 비교 도구 선택은 외부 AI 검증용 최종 매니저 채택과 구분한다. Piskvork 우선 통합 후보와 실제 엔진 검증 계획은 유지한다. 비교에 사용한 원본 파일의 버전·해시와 제한된 실행 범위는 [규칙 검증](verification-rules.md)에 있다.

@@ -21,7 +21,7 @@ function(omok_compiler_options target)
     endif()
 endfunction()
 
-# State is implemented; the other domain modules still reserve dependency boundaries.
+# State and rules are implemented; opening/match/AI/records reserve boundaries.
 add_subdirectory(src/state)
 add_subdirectory(src/rules)
 add_subdirectory(src/opening)

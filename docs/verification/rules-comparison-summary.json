@@ -1,0 +1,500 @@
+{
+  "commit": "56cfd7dc1a0d1ec06d29f44a26931f375ad05991",
+  "sha256": {
+    "check_forbid.py": "784f5bf1c0d715078474adb89903cc62be443bc739376e1f2b371ed95f2d368b",
+    "ai_match.py": "93831daa81fcbcd40f4c6e87156589c6f49c5650063e5d6d7a6198e268bbe815"
+  },
+  "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+  "settings": {
+    "board_size": 15,
+    "rule": 4,
+    "special_rule": ""
+  },
+  "seed": 20261023,
+  "fixture_symmetries": 264,
+  "random_cases": 1000,
+  "local_threat_cases": 1000,
+  "boundary_results": [
+    {
+      "opening_count": 198,
+      "winning_setup": false,
+      "opening_sequence": "row-major board indices [0, opening_count)",
+      "board_before": [
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122100"
+      ],
+      "requests": [
+        [
+          14,
+          13
+        ],
+        [
+          14,
+          14
+        ]
+      ],
+      "result": 0,
+      "endby": 0
+    },
+    {
+      "opening_count": 198,
+      "winning_setup": true,
+      "opening_sequence": "row-major board indices [0, opening_count)",
+      "board_before": [
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221222200"
+      ],
+      "requests": [
+        [
+          14,
+          13
+        ],
+        [
+          14,
+          14
+        ]
+      ],
+      "result": 0,
+      "endby": 0
+    },
+    {
+      "opening_count": 199,
+      "winning_setup": false,
+      "opening_sequence": "row-major board indices [0, opening_count)",
+      "board_before": [
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122100"
+      ],
+      "requests": [
+        [
+          14,
+          13
+        ]
+      ],
+      "result": 0,
+      "endby": 0
+    },
+    {
+      "opening_count": 199,
+      "winning_setup": true,
+      "opening_sequence": "row-major board indices [0, opening_count)",
+      "board_before": [
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221222200"
+      ],
+      "requests": [
+        [
+          14,
+          13
+        ]
+      ],
+      "result": 2,
+      "endby": 0
+    },
+    {
+      "opening_count": 200,
+      "winning_setup": false,
+      "opening_sequence": "row-major board indices [0, opening_count)",
+      "board_before": [
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122100"
+      ],
+      "requests": [],
+      "result": 0,
+      "endby": 0
+    },
+    {
+      "opening_count": 200,
+      "winning_setup": true,
+      "opening_sequence": "row-major board indices [0, opening_count)",
+      "board_before": [
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221122112",
+        "221122112211221",
+        "112211221222200"
+      ],
+      "requests": [],
+      "result": 0,
+      "endby": 0
+    }
+  ],
+  "mismatches": [],
+  "scope": "original check_forbid + original make_move/play methods; deterministic input; no AI processes",
+  "fixture_sha256": "43fdbb10ecef8abbca63288598c49ee5a24dccc46c2b0e0d98bdc72090ab6a8f",
+  "full_report_sha256": "65f6ced6100068766a5046a42dceb957ad326a617728984aca483a05af7ace21",
+  "fixed_fixture_outputs": [
+    {
+      "id": "empty_s0",
+      "input": "empty_s0|B|7|7|Legal|None||",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "black_five_s0",
+      "input": "black_five_s0|B|7|7|Win|ExactFive|7,3;7,4;7,5;7,6|",
+      "cpp": [
+        "Win",
+        "ExactFive"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "white_five_s0",
+      "input": "white_five_s0|W|7|7|Win|WhiteFiveOrMore||7,3;7,4;7,5;7,6",
+      "cpp": [
+        "Win",
+        "WhiteFiveOrMore"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "edge_five_s0",
+      "input": "edge_five_s0|B|0|0|Win|ExactFive|0,1;0,2;0,3;0,4|",
+      "cpp": [
+        "Win",
+        "ExactFive"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "diagonal_five_s0",
+      "input": "diagonal_five_s0|B|7|7|Win|ExactFive|3,3;4,4;5,5;6,6|",
+      "cpp": [
+        "Win",
+        "ExactFive"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "white_diagonal_five_s0",
+      "input": "white_diagonal_five_s0|W|7|7|Win|WhiteFiveOrMore||3,3;4,4;5,5;6,6",
+      "cpp": [
+        "Win",
+        "WhiteFiveOrMore"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "edge_diagonal_five_s0",
+      "input": "edge_diagonal_five_s0|B|0|0|Win|ExactFive|1,1;2,2;3,3;4,4|",
+      "cpp": [
+        "Win",
+        "ExactFive"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "diagonal_overline_s0",
+      "input": "diagonal_overline_s0|B|7|7|Forbidden|Overline|2,2;3,3;4,4;5,5;6,6|",
+      "cpp": [
+        "Forbidden",
+        "Overline"
+      ],
+      "judge": -2
+    },
+    {
+      "id": "black_overline_s0",
+      "input": "black_overline_s0|B|7|7|Forbidden|Overline|7,2;7,3;7,4;7,5;7,6|",
+      "cpp": [
+        "Forbidden",
+        "Overline"
+      ],
+      "judge": -2
+    },
+    {
+      "id": "black_split_overline_s0",
+      "input": "black_split_overline_s0|B|7|7|Forbidden|Overline|7,4;7,5;7,6;7,8;7,9|",
+      "cpp": [
+        "Forbidden",
+        "Overline"
+      ],
+      "judge": -2
+    },
+    {
+      "id": "white_overline_s0",
+      "input": "white_overline_s0|W|7|7|Win|WhiteFiveOrMore||7,2;7,3;7,4;7,5;7,6",
+      "cpp": [
+        "Win",
+        "WhiteFiveOrMore"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "white_long_overline_s0",
+      "input": "white_long_overline_s0|W|7|7|Win|WhiteFiveOrMore||7,1;7,2;7,3;7,4;7,5;7,6",
+      "cpp": [
+        "Win",
+        "WhiteFiveOrMore"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "double_four_s0",
+      "input": "double_four_s0|B|7|7|Forbidden|DoubleFour|7,5;7,6;7,8;5,7;6,7;8,7|",
+      "cpp": [
+        "Forbidden",
+        "DoubleFour"
+      ],
+      "judge": -2
+    },
+    {
+      "id": "same_axis_fours_s0",
+      "input": "same_axis_fours_s0|B|7|7|Forbidden|DoubleFour|7,4;7,6;7,8;7,10|",
+      "cpp": [
+        "Forbidden",
+        "DoubleFour"
+      ],
+      "judge": -2
+    },
+    {
+      "id": "same_axis_broken_fours_s0",
+      "input": "same_axis_broken_fours_s0|B|7|7|Forbidden|DoubleFour|7,3;7,4;7,5;7,9;7,10;7,11|",
+      "cpp": [
+        "Forbidden",
+        "DoubleFour"
+      ],
+      "judge": -2
+    },
+    {
+      "id": "open_four_once_s0",
+      "input": "open_four_once_s0|B|7|7|Legal|None|7,5;7,6;7,8|",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "double_three_s0",
+      "input": "double_three_s0|B|7|7|Forbidden|DoubleThree|7,6;7,8;6,7;8,7|",
+      "cpp": [
+        "Forbidden",
+        "DoubleThree"
+      ],
+      "judge": -2
+    },
+    {
+      "id": "broken_double_three_s0",
+      "input": "broken_double_three_s0|B|7|7|Forbidden|DoubleThree|7,5;7,8;5,7;8,7|",
+      "cpp": [
+        "Forbidden",
+        "DoubleThree"
+      ],
+      "judge": -2
+    },
+    {
+      "id": "open_three_once_s0",
+      "input": "open_three_once_s0|B|7|7|Legal|None|7,6;7,8|",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "blocked_false_three_s0",
+      "input": "blocked_false_three_s0|B|7|7|Legal|None|7,6;7,8;6,7;8,7|7,5;7,9",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "edge_false_three_s0",
+      "input": "edge_false_three_s0|B|0|7|Legal|None|0,6;0,8;1,7;2,7|",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "overline_false_three_s0",
+      "input": "overline_false_three_s0|B|7|7|Legal|None|7,6;7,8;6,7;8,7;2,9;3,9;4,9;5,9;6,9|7,4",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "double_four_false_three_s0",
+      "input": "double_four_false_three_s0|B|7|7|Legal|None|7,6;7,8;6,7;8,7;5,9;6,9;8,9|7,4",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "five_extension_false_three_s0",
+      "input": "five_extension_false_three_s0|B|7|7|Legal|None|7,6;7,8;6,7;8,7;3,9;4,9;5,9;6,9|7,4",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "recursive_false_three_s0",
+      "input": "recursive_false_three_s0|B|7|7|Legal|None|7,6;7,8;6,7;8,7;6,9;8,9;6,10;8,8|7,4",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "recursive_exception_s0",
+      "input": "recursive_exception_s0|B|7|7|Forbidden|DoubleThree|7,6;7,8;6,7;8,7;6,9;8,9;6,10;8,8;0,4;1,5;2,6;3,7;4,8|7,4;9,9",
+      "cpp": [
+        "Forbidden",
+        "DoubleThree"
+      ],
+      "judge": -2
+    },
+    {
+      "id": "five_over_overline_s0",
+      "input": "five_over_overline_s0|B|7|7|Win|ExactFive|7,3;7,4;7,5;7,6;2,7;3,7;4,7;5,7;6,7|",
+      "cpp": [
+        "Win",
+        "ExactFive"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "five_over_double_four_s0",
+      "input": "five_over_double_four_s0|B|7|7|Win|ExactFive|7,3;7,4;7,5;7,6;5,7;6,7;8,7;5,5;6,6;8,8|",
+      "cpp": [
+        "Win",
+        "ExactFive"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "five_over_double_three_s0",
+      "input": "five_over_double_three_s0|B|7|7|Win|ExactFive|7,3;7,4;7,5;7,6;6,7;8,7;6,6;8,8|",
+      "cpp": [
+        "Win",
+        "ExactFive"
+      ],
+      "judge": 1
+    },
+    {
+      "id": "white_double_three_s0",
+      "input": "white_double_three_s0|W|7|7|Legal|None||7,6;7,8;6,7;8,7",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "white_double_four_s0",
+      "input": "white_double_four_s0|W|7|7|Legal|None||7,5;7,6;7,8;5,7;6,7;8,7",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "blocked_four_not_four_s0",
+      "input": "blocked_four_not_four_s0|B|7|7|Legal|None|7,5;7,6;7,8;5,7;6,7;8,7|7,4;7,9",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    },
+    {
+      "id": "overline_completion_not_four_s0",
+      "input": "overline_completion_not_four_s0|B|7|7|Legal|None|7,3;7,5;7,6;7,8;7,10;5,7;6,7;8,7|",
+      "cpp": [
+        "Legal",
+        "None"
+      ],
+      "judge": 0
+    }
+  ]
+}

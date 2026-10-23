@@ -1,3 +1,5 @@
-# Reserved boundary: legality, renju adjudication, wins, draws.
-add_library(omok_rules INTERFACE)
-target_link_libraries(omok_rules INTERFACE omok_state)
+add_library(omok_rules STATIC renju.cpp)
+target_include_directories(omok_rules PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(omok_rules PUBLIC omok_state)
+target_compile_features(omok_rules PUBLIC cxx_std_20)
+omok_compiler_options(omok_rules)
