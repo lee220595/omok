@@ -6,7 +6,7 @@
 
 후속 오프닝 승인: 준비 배치 로더·순차 복원·본게임 인계·독립 Swap2 상태 전환과 자동 테스트를 구현했다. 오프닝 단계에서 67개 CTest를 사용했으며 [오프닝 계약](opening-contract.md)·[최신 검증](verification-opening.md)을 우선한다. 후속 로컬 대국 구현은 아래 최신 상태를 따른다.
 
-2026-10-24 로컬 대국 검증 재개: WIP `5023aa2`를 보존하고 match·GUI·금수 작업자 코드를 검토했다. 빌드/install·81개 테스트·DLL 검사는 통과했다. GUI 도구 입력 충돌로 실제 착수 검증은 남아 있으며 [match 계약](match-contract.md)·[최신 검증](verification-match.md)을 따른다. AI 기능으로 확대하지 않는다.
+2026-10-24 로컬 대국 검증 재개: WIP `5023aa2`를 보존하고 match·GUI·금수 작업자 코드를 검토했다. 빌드/install·81개 테스트·DLL 검사는 통과했다. GUI 도구 입력 충돌로 실제 착수 검증은 남아 있으며 [match 계약](match-contract.md)·[최신 검증](verification-match.md)을 따른다. 당시 승인에서는 AI로 확대하지 않았으며 아래 후속 승인을 따른다.
 
 ## 현재 확인한 자료
 루트 AGENTS.md와 docs/requirements-pending.md, docs/compatibility-research.md가 실제 존재하며 읽었다. 이번 확인에서 참조 문서 누락은 없었다. 기존 문서의 승인 이력은 보존하고 이번 구현 착수 승인을 추가한다. 기존 조사만으로 실제 연동 완료를 주장하지 않는다.
@@ -35,7 +35,7 @@
 | src/rules · omok_rules | 순수 구조 검사·국소 렌주·일반 대국 200수 정책 | C++20 정적 라이브러리 구현, 상태에 적용하지 않음 |
 | src/opening · omok_opening | 준비 배치 로더·규칙 활용 순차 복원·인계·별도 Swap2 전환 | state/rules를 사용하는 정적 라이브러리 구현, GUI·프로토콜 독립 |
 | src/match · omok_match | 대국·종료·Token·금수 작업자 | 독립 정적 라이브러리 구현. 시계 미구현 |
-| src/ai · omok_ai | 프로세스·통신·응답 검증 | state 의존 경계만 예약 |
+| src/ai · omok_ai | 외부 프로세스·BOARD 변환·CPU·오류/취소 | Win32 정적 라이브러리, 실제 Rapfi 초기 연결·사람 대 AI 확인. AI 대 AI/Swap2는 후속 |
 | src/records · omok_records | 저장·복원·복기 | state 의존 경계만 예약 |
 
 예약 타깃을 기능 구현으로 계산하지 않는다. 이후 구현 시 state에 Windows·GUI 의존성을 두지 않는다. match는 참가자 입력 인터페이스를 통해 사람·AI 요청을 처리하고, GUI와 AI 어댑터는 규칙을 중복 구현하지 않는다. 기보는 보드만 저장하지 않고 대국 설정·참가자 색 대응·오프닝 선택 이력을 보존하도록 설계한다. 실제 형식·인터페이스는 해당 단계에서 구체화한다.
@@ -43,3 +43,7 @@
 현재 state API·좌표는 [상태 계약](state-model.md), 규칙과 향후 일반 대국 적용은 [판정 계약](rules-spec.md), 오프닝 입력 주체·색·차례·결과 복원은 [오프닝 계약](opening-contract.md)에 구체화했다. 일반 대국 권한·배치/종료 적용은 match가 담당한다. 시계는 후속이다. tests/는 GUI 독립 상태·규칙·오프닝·match와 좌표 테스트를 포함한다.
 
 각 단계 보고는 변경 파일·실제 검증·미검증·남은 제약을 포함한다. 필수 요구 변경만 사용자에게 확인하며 승인된 기술 선택을 반복 승인받지 않는다.
+
+## 외부 Rapfi 초기 연결 (2026-10-24 후속 승인)
+
+사용자 설치 Rapfi와 CPU/설정/모델을 조사하고 준비 렌주에서 실제 응답을 match에 적용했다. GUI 사람 대 Rapfi의 흑/백 응답·사람 클릭·재시작·기권·취소/닫기를 확인했다. 전체 CTest는86개이며 실제 엔진 probe와 구분한다. 6단계는 초기 연결만 구현한 상태로 AI 대 AI·Swap2 통신·전체 대회 시계/자원/오류 실대국·매니저 검증은 남아 있다. 5단계의 승리/금수/무승부 등 남은 전체 수동 항목도 자동 완료 처리하지 않는다. [계약](rapfi-integration.md)·[최신 검증](verification-rapfi.md)을 따른다.

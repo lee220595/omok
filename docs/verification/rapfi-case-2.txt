@@ -1,0 +1,64 @@
+> ABOUT
+< MESSAGE Load config from "config.toml"
+<
+< MESSAGE Evaluator set to mix9svq.
+<
+< name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+> START 15
+<
+< OK
+> INFO rule 4
+INFO max_memory 536870912
+INFO thread_num 1
+INFO pondering 0
+INFO game_type 0
+ABOUT
+<
+< name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+> INFO timeout_turn 399
+INFO timeout_match 180000
+INFO time_left 179608
+> BOARD
+7,7,2
+8,7,1
+6,8,2
+DONE
+<
+< MESSAGE mix9svq nnue: load weight from mix9svqrenju_bs15_black.bin.lz4
+<
+< MESSAGE mix9svq nnue: load weight from mix9svqrenju_bs15_white.bin.lz4
+<
+< MESSAGE OptiTime 332ms | MaxTime 369ms
+<
+< MESSAGE Depth 2-3 | Eval -277 | Time 1ms | I7 I6
+<
+< MESSAGE Depth 3-4 | Eval -244 | Time 1ms | I7 I6 J7
+<
+< MESSAGE Depth 4-4 | Eval -244 | Time 1ms | I7 I6 J7
+<
+< MESSAGE Depth 5-5 | Eval -163 | Time 1ms | I7 I6 H6 J8
+<
+< MESSAGE Depth 6-6 | Eval -169 | Time 2ms | I7 I6 H6 J8 G7
+<
+< MESSAGE Depth 7-12 | Eval -238 | Time 3ms | I7 I6 H7 G6 G7 J7
+<
+< MESSAGE Depth 8-9 | Eval -238 | Time 3ms | I7 I6 H7 G6 G7 J7
+<
+< MESSAGE Depth 9-9 | Eval -238 | Time 3ms | I7 I6 H7 G6 G7 J7
+<
+< MESSAGE Depth 10-8 | Eval -238 | Time 3ms | I7 I6 H7 G6 G7 J7 H6
+<
+< MESSAGE Depth 11-8 | Eval -238 | Time 4ms | I7 I6 H7 G6 G7 J7 H6
+<
+< MESSAGE Depth 12-17 | Eval -206 | Time 7ms | I7 I6 J7 H7 H9 K6 J5 J8 I10 G10 G8 J11
+<
+< MESSAGE Depth 13-20 | Eval -141 | Time 46ms | I7 I6 J7 H7 H9 K6 G8 I10 H6 J8 E6 H10 G10 F11 F8 G11 F7 D5
+<
+< MESSAGE Depth 14-27 | Eval -152 | Time 118ms | I7 I6 H6 J8 G7 H7 G8 H10 F8 H9 H11 E9 I9 F10 I11 I10 G10 G11 D8 E8 E10
+<
+< MESSAGE Depth 14-26 | Eval -115 | Time 371ms | I7
+<
+< MESSAGE Speed 222K | Depth 14-26 | Eval -115 | Node 82K | Time 371ms
+<
+< 8,6
+# outcome=0 pid=22208 elapsed_ms=922.211 reaped=1 forced=0 exit=0 detail=

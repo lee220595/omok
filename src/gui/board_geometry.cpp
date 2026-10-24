@@ -23,7 +23,7 @@ BoardGeometry board_geometry(int width, int height, unsigned dpi) noexcept
 {
     if (dpi == 0 || dpi > 960 || width <= 0 || height <= 0) { return {}; }
     const double scale = dpi / 96.0;
-    const int top = static_cast<int>(200 * scale);
+    const int top = static_cast<int>(240 * scale);
     const int available_w = std::max(0, width - static_cast<int>(360 * scale));
     const int available_h = std::max(0, height - top - static_cast<int>(40 * scale));
     const int step = std::min(available_w, available_h) / 14;

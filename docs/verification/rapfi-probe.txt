@@ -1,0 +1,7 @@
+CPU=Intel(R) Core(TM) Ultra 5 226V SSE41=1 AVX2=1 FMA=1 BMI2=1 AVX512=0 AVXVNNI=1
+name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+case=0 outcome=0 elapsed_ms=947.307 pid=26188 reaped=1 forced=0 detail= row=6 column=8
+name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+case=1 outcome=0 elapsed_ms=918.763 pid=37988 reaped=1 forced=0 detail= row=6 column=8
+name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+case=2 outcome=0 elapsed_ms=922.211 pid=22208 reaped=1 forced=0 detail= row=6 column=8

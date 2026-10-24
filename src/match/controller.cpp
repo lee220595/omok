@@ -127,5 +127,30 @@ Response Controller::close(Token expected)
     *this = std::move(candidate);
     return {};
 }
+Response Controller::engine_failure(Token expected, state::Participant actor, EngineFailure failure)
+{
+    const auto error = input_error(expected);
+    if (error != Error::None) { return {error}; }
+    if (!valid(actor)) { return {Error::InvalidParticipant}; }
+    if (game_.next_participant() != actor) { return {Error::WrongParticipant}; }
+    EndReason reason;
+    switch (failure) {
+    case EngineFailure::Start: reason = EndReason::EngineStartFailure; break;
+    case EngineFailure::Timeout: reason = EndReason::EngineTimeout; break;
+    case EngineFailure::Exited: reason = EndReason::EngineExited; break;
+    case EngineFailure::BadOutput: reason = EndReason::EngineBadOutput; break;
+    case EngineFailure::IllegalMove: reason = EndReason::EngineIllegalMove; break;
+    default: return {Error::InvalidPlacement};
+    }
+    Controller candidate = *this;
+    const state::GameResult result = failure == EngineFailure::Start
+        ? state::GameResult{state::Aborted{}} : state::GameResult{state::Won{other(actor)}};
+    if (candidate.game_.finish(result) != state::StateError::None) { return {Error::StorageFailure}; }
+    ++candidate.token_.revision;
+    candidate.phase_ = Phase::Finished; candidate.end_reason_ = reason;
+    candidate.events_.push_back({EventKind::Ended, candidate.token_, actor, {}, {}, reason});
+    *this = std::move(candidate);
+    return {};
+}
 static_assert(std::is_nothrow_move_assignable_v<Controller>);
 } // namespace omok::match

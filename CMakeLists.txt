@@ -21,7 +21,7 @@ function(omok_compiler_options target)
     endif()
 endfunction()
 
-# State, rules, opening and match are implemented; AI/records reserve boundaries.
+# State/rules/opening/match and external AI transport are implemented; records is reserved.
 add_subdirectory(src/state)
 add_subdirectory(src/rules)
 add_subdirectory(src/opening)

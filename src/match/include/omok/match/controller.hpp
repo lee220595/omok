@@ -9,7 +9,9 @@ struct Token {
     bool operator==(const Token&) const = default;
 };
 enum class Phase { NotStarted, Playing, Finished, Closed };
-enum class EndReason { None, Five, MoveLimit, BoardFull, Forbidden, Resigned, Closed, OpeningResult };
+enum class EndReason { None, Five, MoveLimit, BoardFull, Forbidden, Resigned, Closed, OpeningResult,
+    EngineStartFailure, EngineTimeout, EngineExited, EngineBadOutput, EngineIllegalMove };
+enum class EngineFailure { Start, Timeout, Exited, BadOutput, IllegalMove };
 enum class Error { None, NotReady, EmptyOpening, InvalidOpening, StaleInput, NotPlaying,
     InvalidParticipant, WrongParticipant, InvalidPlacement, StorageFailure, VersionExhausted };
 struct Response {
@@ -43,6 +45,7 @@ public:
     [[nodiscard]] Response place(Token expected, state::Participant actor, state::Coordinate position);
     [[nodiscard]] Response resign(Token expected, state::Participant actor);
     [[nodiscard]] Response close(Token expected);
+    [[nodiscard]] Response engine_failure(Token expected, state::Participant actor, EngineFailure failure);
     bool operator==(const Controller&) const = default;
 private:
     [[nodiscard]] Error input_error(Token expected) const noexcept;

@@ -39,3 +39,7 @@ Qt·wxWidgets도 후보가 될 수 있지만 현재 Windows 전용 최소 창과
 ## 로컬 대국과 금수 작업자 추가 (2026-10-24)
 
 match는 표준 C++20 정적 라이브러리, 화면 좌표는 Windows 독립 omok_geometry로 분리했다. 금수 계산은 한 std::thread의 최신 요청 합치기·스냅샷·세션/revision 검증을 사용한다. UI 잠금과 이전 대국 결과 적용을 막기 위한 선택이다. 기존 규칙 재귀를 자르지 않으므로 현재 후보 완료까지의 종료 지연은 상한 미검증이다. 현재 POSIX MinGW의 winpthreads는 정적 포함되며 고지를 licenses에 추가했다. 세부 계약과 실제 증거는 [match 계약](match-contract.md)·[검증](verification-match.md)을 따른다.
+
+## Rapfi 프로세스 어댑터 (2026-10-24)
+
+Win32 CreateProcessW·제한 핸들 상속·파이프·Job·단일 작업자를 사용해 GUI와 분리했다. 첫 연결은 매 수 새 프로세스와 순서 보존 BOARD를 사용해 상태 오염을 막지만 TT/가중치 캐시를 재사용하지 않는다. CPU는 CPUID/OSXSAVE/XGETBV로 검사하고 AVX2/SSE만 자동 선택한다. 자체AI/제3자 소스 편입 없이 사용자 설치 엔진을 실행한다. 엔진 초기화/지연 로드 비용·메모리 예산·취소 정책의 실제 근거와 제약은 [Rapfi 계약](rapfi-integration.md)·[검증](verification-rapfi.md)에 기록했다.

@@ -2,6 +2,8 @@
 
 현재 GUI는 자체 작성 C++ 코드와 Windows 기본 User32/GDI32 API를 사용한다. Qt·wxWidgets, 매니저·AI 코드·모델·바이너리는 포함하지 않는다. Windows의 DLL은 OS 제공 구성요소이며 이 패키지에 복사·재배포하지 않는다. Windows 사용 조건은 대상 OS에 따른다.
 
+Rapfi는 사용자가 별도 설치한 실행 파일을 표준 입출력으로 호출한다. `external/rapfi/`의 실행 파일·config·가중치·AUTHORS를 제품/소스 저장소에 동봉하지 않는다. [제작자 고정 README](https://github.com/dotb1ue/rapfi/blob/1be1551ced57e38d53ed58f6d74bf6f8b4bdc230/Readme.md)는 GPLv3와 정확한 바이너리의 소스 제공 조건을 안내한다. 가중치별 재배포 조건·다운로드 파일과 정확한 소스 대응은 이번에 확정하지 않았으며 재배포 허가로 추정하지 않는다. 현재는 사용자 로컬 설치 실행만 검증했다. 상세 해시·범위는 [Rapfi 기록](docs/verification-rapfi.md)을 따른다.
+
 MinGW 빌드는 GCC 런타임을 정적으로 링크한다. GCC 13.3.0, libgcc 및 libstdc++에는 GPL과 GCC Runtime Library Exception 3.1이 적용된다. 예외 조건을 충족하는 일반적인 GCC 컴파일 결과는 독립 애플리케이션의 배포 조건을 사용할 수 있다. GCC 자체나 수정한 런타임을 배포할 때의 의무와 구분한다.
 
 - [GCC 라이선스 설명](https://gcc.gnu.org/onlinedocs/libstdc++/manual/license.html)

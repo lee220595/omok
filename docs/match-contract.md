@@ -34,7 +34,11 @@ NotStarted, OpeningInput, RuleContractRequired는 start/일반 착수를 허용�
 
 BoardGeometry의 left/top은 첫 교차점, step은 교차점 간격이다. point({r,c}) = {left+c*step, top+r*step}. hit는 바깥 격자 경계를 거부하고 가장 가까운 교차점에서 0.35*step 이내의 원형 영역만 수용한다. 그 외 클릭은 무시한다. 중복/종료 후 입력은 match가 다시 검사한다. 유효하지 않은 크기/DPI에서는 클릭·그리기를 하지 않는다.
 
-board_geometry는 보드 위쪽 200 논리 픽셀과 우측 상태 영역을 확보한다. WM_SIZE·WM_DPICHANGED에서 레이아웃과 그리기를 갱신하고 클릭도 같은 새 geometry를 계산한다. GUI는 state를 직접 수정하거나 rules를 독자 판정하지 않는다. DPI96/120/144/192의 전 교차점과 리사이즈는 자동 계산 테스트로 검증하며 실제 모니터 DPI 이동 검증과 구분한다.
+board_geometry는 보드 위쪽 240 논리 픽셀과 우측 상태 영역을 확보한다(2026-10-24 Rapfi 방식/경로 행 추가). WM_SIZE·WM_DPICHANGED에서 레이아웃과 그리기를 갱신하고 클릭도 같은 새 geometry를 계산한다. GUI는 state를 직접 수정하거나 rules를 독자 판정하지 않는다. DPI96/120/144/192의 전 교차점과 리사이즈는 자동 계산 테스트로 검증하며 실제 모니터 DPI 이동 검증과 구분한다. 이전 검증 문서의 고정 픽셀 예시는 역사 기록이며 새 화면에 재사용하지 않는다.
+
+## 외부 엔진 결과 적용 확장
+
+2026-10-24 사용자 승인으로 engine_failure(Token,actor,failure)를 추가했다. 현재 Token·Playing·유효 actor·다음 참가자를 확인하고 사본에서 Ended 이벤트/결과를 공개한다. Start는 승패 없는 Aborted/EngineStartFailure이며 Timeout·Exited·BadOutput·IllegalMove는 상대 승리로 끝낸다. 일반 state 오류를 자동 변환하지 않고, AI 어댑터가 실제 엔진 입력임을 확인한 뒤 호출한다. 외부 엔진의 정상 좌표는 기존 place를 거쳐야 하며 흑 금수는 기존 Forbidden 정책이다. 늦은 응답/취소는 적용하지 않는다. 상세 프로세스/로그/시간 계약은 [Rapfi 연결](rapfi-integration.md)을 따른다.
 
 ## 금수 표시와 수명
 

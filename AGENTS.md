@@ -5,6 +5,7 @@
 - 이후 같은 날 **게임 상태 모델과 관련 자동 테스트 구현**도 명시 승인했다. 2026-10-23에는 **렌주 명세·판정 모듈·관련 조사와 자동 테스트**도 승인했다. 상태·규칙은 GUI/Windows와 독립적으로 구현한다.
 - 같은 날 후속 요청으로 **준비 오프닝 복원·본게임 전환 계약·별도 Swap2 상태 전환·관련 조사와 테스트**도 승인했다. Swap2의 규칙 적용을 임의로 렌주에 결합하지 않는다.
 - 2026-10-24까지의 후속 요청으로 **대국 제어·로컬 사람 대 사람 바둑판 GUI·금수 표시·자동 테스트 및 수동 GUI 검증 재개·WIP 보존**을 승인했다. 초기 범위 제외보다 이 승인이 우선한다. 현재 단계에는 Swap2 GUI/규칙 연결, AI 프로세스/통신, 대회 시계/자원 강제, 기보 파일/복기, 자체 AI를 추가하지 않는다. 수동 대국 검증이 남으면 GUI 단계 전체 완료로 표시하지 않는다.
+- 같은 날 후속 요청으로 **사용자가 external/rapfi에 설치한 외부 Rapfi 프로세스·Gomocup 통신·초기화/준비 배치 응답·사람 대 Rapfi GUI 연결·오류/시간/이전 응답 관리**를 승인했다. 위 AI 프로세스/통신 제외를 이 범위에서 갱신한다. 자체 AI·AI 대 AI·Swap2 통신/규칙 연결·사람 시계·기보/복기는 이번 구현 대상이 아니다. 이전 GUI 단계의 미검증 항목을 이 승인으로 완료 처리하지 않는다.
 - 확정 요구사항만 구현 근거로 사용한다. [승인 기록과 후속 확인 사항](docs/requirements-pending.md)에 결정 내용·날짜와 미검증 항목을 기록한다. 승인된 항목을 반복 질문하지 않는다.
 - 승인된 범위 안의 일반적인 기술 선택에는 재승인을 요구하지 않는다. 규칙 변경, 범위 확대, 필수 요구사항 포기에는 사용자 확인을 받는다.
 
@@ -64,11 +65,11 @@
 
 ## 구현 기반과 현재 구조
 - C++20, Win32 User32/GDI32, CMake 3.24 이상을 사용한다. 기본 검증 도구 체인은 MinGW-w64 x64 GCC 13.3.0·Ninja 1.12.1·CMake 3.29.3이다. 선택 근거·라이선스는 [기술 결정](docs/technology-decisions.md), 배포 고지는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 따른다.
-- src/app은 실행 진입점, src/gui는 Win32 로컬 대국 창과 독립 좌표 변환이다. src/state·src/rules·src/opening·src/match는 C++20 정적 라이브러리이며 Windows/GUI에 의존하지 않는다. GUI는 match를 통해 상태·규칙·오프닝을 연결한다. ai·records는 INTERFACE 경계만 예약했다. [match·좌표·금수 작업자 계약](docs/match-contract.md)을 따른다.
+- src/app은 실행 진입점, src/gui는 Win32 대국 창과 독립 좌표 변환이다. src/state·src/rules·src/opening·src/match는 Windows/GUI 독립 C++20 정적 라이브러리다. ai는 순서 보존 BOARD 변환·Win32 프로세스/파이프·비동기 작업자 정적 라이브러리이며 records만 INTERFACE다. GUI는 match를 통해 판정/배치한다. [match 계약](docs/match-contract.md)·[Rapfi 연결 계약](docs/rapfi-integration.md)을 따른다.
 - 상태 API와 좌표·권한 경계는 [상태 모델 계약](docs/state-model.md)을 따른다. `commit_placement`는 상위 계층이 승인한 배치의 기록 트랜잭션이다. 실제 배치 참가자와 색 소유자를 구분하고, 입력 권한·규칙·오프닝·다음 색 결정은 상위 계층에 둔다. 오류 반환을 반칙패 등 게임 결과로 자동 해석하지 않는다.
 - 상태 CTest 14개는 초기 상태·전체 좌표·구조적 거부/보존·색/관점·이력·종료 기록·초기화·자동 판정 부재·외부 준비 배치 주체를 검증한다. `Placement::placed_by`는 optional이며 nullopt는 외부 준비 돌이다. 일반 착수·Swap2는 실제 A/B를 공급하고 색 소유자를 임의로 배치 주체에 기록하지 않는다. 과거 13개 결과는 [상태 검증 기록](docs/verification-state.md)에 보존한다.
 - 규칙은 [판정 계약](docs/rules-spec.md)·[사례 명세](docs/renju-cases.md)를 따른다. `analyze_board`는 구조 검사·국소 보드 판정, `evaluate`는 일반 대국의 차례·종료·준비 배치 포함 200수 정책을 추가한다. 원본을 변경하지 않고 승리·금수·무승부를 반환하며 결과 적용은 대국 제어가 맡는다. 정확한 흑 5목은 동시 금수보다 우선한다. 삼의 확장 합법성은 재귀 검사한다.
-- 전체 CTest는 81개(상태 14·규칙 39·오프닝 14·match 14)다. 고정 GomocupJudge `56cfd7d`의 판정 함수·대국 루프를 별도로 실행해 대조한다. 자체 테스트·심판 소스 확인·실제 함수 실행·전체 매니저/엔진 연동을 구분한다. 과거 [규칙 검증](docs/verification-rules.md)·[오프닝 검증](docs/verification-opening.md)과 [로컬 대국 검증](docs/verification-match.md)에 실제 범위를 기록한다.
+- 전체 CTest는 86개(상태14·규칙39·오프닝14·match14·AI5)다. AI CTest는 고정 응답 모의 엔진이며 실제 Rapfi 실행은 별도 probe/GUI로 검증한다. 고정 심판 함수 대조와 실제 엔진·전체 매니저·대회 호환성도 구분한다. [규칙 검증](docs/verification-rules.md)·[오프닝 검증](docs/verification-opening.md)·[로컬 대국 검증](docs/verification-match.md)·[Rapfi 검증](docs/verification-rapfi.md)을 따른다.
 - [오프닝 계약](docs/opening-contract.md)을 따른다. 준비 렌주 로더/복원은 순서·색·구조·rules 판정을 검증하고 실패 시 세션 전체를 보존한다. 공식 데이터·사용 조건은 미확보다. 외부 데이터/테스트 fixture는 install하지 않으며 GUI에는 자체 작성한 개발 확인용 배치 다섯 가지를 제공한다. 공식 배치로 소개하지 않는다. 준비 돌도 총 200수에 포함하며 종료 상태에는 다음 입력을 요청하지 않는다.
 - Swap2Protocol은 기본 PreparedRenju와 분리된 구조적 상태 기계다. 완료 시 색·차례는 인계하지만 `RuleContractRequired`로 일반 대국 진입을 차단한다. 규칙 바인딩을 확인하기 전 렌주 evaluate·200수 정책에 자동 연결하지 않는다. 문자열 송수신·미정 GUI 흐름은 미구현이다. 오프닝 메타데이터·이력·색 선택 이벤트는 메모리에 기록하며 기보 파일 기능과 구분한다.
 - [전체 개발 계획](docs/development-plan.md), [매니저·엔진 후보](docs/integration-candidates.md), [기반 검증 기록](docs/verification-foundation.md)을 유지한다. 문서 확인과 실제 엔진 연동을 구분한다.
@@ -79,6 +80,7 @@
 - 매니저의 규칙 지원, 외부 GUI 연결, AI 프로세스·시간 관리, 판정 결과 접근을 확인한다. 수정·재배포 전 라이선스와 배포 조건을 확인한다.
 - 부족한 지원에는 제약과 대안을 제시해 사용자에게 확인한다. 승인 없이 다른 규칙으로 대체하지 않는다.
 - `pbrain-`는 AI 엔진용 이름 규약이다. 게임 GUI 실행 파일에 적용하지 않는다.
+- `external/rapfi/` 전체는 사용자 로컬 설치이며 Git·install·배포 ZIP에서 제외한다. 실행 파일·config·가중치를 임의 변경/재배포하지 않는다. 현재 PC는 CPUID/XGETBV로 확인한 AVX2 실행 파일을 사용한다. 버전·파일 해시·실행법·미검증은 [Rapfi 기록](docs/verification-rapfi.md)에 남긴다.
 
 ## 책임과 상태 경계 — 필수
 | 책임 | 담당 내용 |

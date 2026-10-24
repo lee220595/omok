@@ -1,0 +1,78 @@
+> ABOUT
+< MESSAGE Load config from "config.toml"
+<
+< MESSAGE Evaluator set to mix9svq.
+<
+< name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+> START 15
+<
+< OK
+> INFO rule 4
+INFO max_memory 536870912
+INFO thread_num 1
+INFO pondering 0
+INFO game_type 0
+ABOUT
+<
+< name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+> INFO timeout_turn 28751
+INFO timeout_match 180000
+INFO time_left 179496
+> BOARD
+7,7,1
+8,7,2
+6,8,1
+8,8,2
+DONE
+<
+< MESSAGE mix9svq nnue: load weight from mix9svqrenju_bs15_black.bin.lz4
+<
+< MESSAGE mix9svq nnue: load weight from mix9svqrenju_bs15_white.bin.lz4
+<
+< MESSAGE OptiTime 8547ms | MaxTime 25s
+<
+< MESSAGE Depth 2-5 | Eval 791 | Time 0ms | I7 F10
+<
+< MESSAGE Depth 3-4 | Eval 584 | Time 0ms | I7 F10 H7
+<
+< MESSAGE Depth 4-4 | Eval 584 | Time 0ms | I7 F10 H7
+<
+< MESSAGE Depth 5-7 | Eval 89 | Time 0ms | I7 F10 H7 H6
+<
+< MESSAGE Depth 6-6 | Eval 496 | Time 1ms | I7 F10 H7 H6 J7
+<
+< MESSAGE Depth 7-6 | Eval 496 | Time 1ms | I7 F10 H7 H6 J7
+<
+< MESSAGE Depth 8-11 | Eval 318 | Time 1ms | I7 F10 H7 H6 J7 G7 I5
+<
+< MESSAGE Depth 9-15 | Eval 405 | Time 2ms | I7 F10 H7 H6 G7 F7 G8 G10
+<
+< MESSAGE Depth 10-15 | Eval 405 | Time 2ms | I7 F10 H7 H6 G7 F7 G8 G10
+<
+< MESSAGE Depth 11-15 | Eval 405 | Time 2ms | I7 F10 H7 H6 G7 F7 G8 G10
+<
+< MESSAGE Depth 12-23 | Eval 568 | Time 23ms | I7 J6 H10 F10 H7 H9 G7 F7 F8 E7 H6 I5 E9 D10
+<
+< MESSAGE Depth 13-17 | Eval 568 | Time 24ms | I7 J6 H10 F10 H7 H9 G7 F7 F8 E7 H6 I5
+<
+< MESSAGE Depth 14-17 | Eval 568 | Time 27ms | I7 J6 H10 F10 H7 H9 G7 F7 F8 E7 H6 I5
+<
+< MESSAGE Depth 15-17 | Eval 568 | Time 31ms | I7 J6 H10 F10 H7 H9 G7 F7 F8 E7 H6 I5
+<
+< MESSAGE Depth 16-17 | Eval 568 | Time 40ms | I7 J6 H10 F10 H7 H9 G7 F7 F8 E7 H6 I5
+<
+< MESSAGE Depth 17-27 | Eval 657 | Time 417ms | I7 F10 H6 H7 G5 F4 G6 I6 G8 G7 F7 E6 E8 D9 H5 I4
+<
+< MESSAGE Depth 18-29 | Eval +M51 | Time 659ms | I7 J6 F10 E11 F8 F7 H10 I11 G10 I10 I12 H11 G8
+<
+< MESSAGE Depth 19-18 | Eval +M51 | Time 671ms | I7 J6 F10 E11 F8 F7 H10 I11 G10 I10 I12 H11 G8
+<
+< MESSAGE Depth 20-18 | Eval +M51 | Time 706ms | I7 J6 F10 E11 F8 F7 H10 I11 G10 I10 I12 H11 G8 G11 F11
+<
+< MESSAGE Depth 21-29 | Eval +M49 | Time 911ms | I7 J6 F10 E11 F8 F7 H10 I11 G10 I10 I12 H11 G8 G11 F11 K11 J11 E10
+<
+< MESSAGE Depth 22-45 | Eval +M45 | Time 1306ms | I7 J6 F10 E11 H10 I11 F8 H11 E7 D6 F7 G11 F11 F9 H7 G7 I10 K11 J11 G10 G8 H9 E8 D8 E6 J7 K6 J13 I12 E9 G6 D9 E5 E4
+<
+< MESSAGE Depth 23-43 | Eval +M27 | Time 2509ms | I7 J6 F10 E11 F8 G11 H10 I11 H7 F11 H11 H9 G10 I10 I12 C11 D11 F9 D8 D10 G8 E8 G7 G6
+<
+# outcome=5 pid=21240 elapsed_ms=4563.5 reaped=1 forced=0 exit=0 detail=request cancelled

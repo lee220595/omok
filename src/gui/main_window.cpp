@@ -3,6 +3,7 @@
 #include "omok/match/controller.hpp"
 #include "omok/match/development_positions.hpp"
 #include "omok/match/forbidden.hpp"
+#include "omok/ai/engine.hpp"
 #include <windowsx.h>
 #include <algorithm>
 #include <array>
@@ -14,7 +15,24 @@ namespace {
 namespace st = state;
 namespace mt = match;
 constexpr wchar_t window_class[] = L"Omok.LocalMatch.MainWindow";
-enum Control { Preset = 101, Owner, Start, Restart, Resign, Hints, Compact, Status, Notice, Banner, CompactLabel };
+enum Control { Preset = 101, Owner, Start, Restart, Resign, Hints, Compact, Status, Notice, Banner, CompactLabel,
+    Mode, EngineLabel, EnginePath };
+std::filesystem::path executable_directory()
+{
+    std::wstring path(32768, L'\0');
+    const auto length = GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
+    path.resize(length); return std::filesystem::path(path).parent_path();
+}
+std::filesystem::path default_engine()
+{
+    auto parent = executable_directory();
+    for (int n = 0; n < 6; ++n) {
+        const auto selected = ai::select_rapfi(parent / L"external" / L"rapfi" / L"Rapfi-engine");
+        if (!selected.empty()) { return selected; }
+        if (parent == parent.parent_path()) { break; } parent = parent.parent_path();
+    }
+    return {};
+}
 constexpr std::array<const wchar_t*, 5> preset_names{
     L"개발 확인용 · 기본 3수", L"개발 확인용 · 승리 확인 7수", L"개발 확인용 · 금수 확인 8수",
     L"개발 확인용 · 무승부 확인 199수", L"개발 확인용 · 종료 배치 9수"};
@@ -70,6 +88,12 @@ struct View {
     HFONT font{};
     mt::Controller controller;
     mt::HintWorker worker;
+    ai::EngineWorker engine_worker;
+    std::optional<st::Participant> ai_actor;
+    std::filesystem::path engine_path;
+    bool ai_busy{};
+    int ai_remaining_ms{180000};
+    std::wstring engine_text{L"외부 엔진 미사용"};
     mt::HintCache hints;
     bool show_hints{true};
     std::wstring hint_text{L"대국 시작 후 흑 차례에 계산합니다."};
@@ -86,7 +110,7 @@ struct View {
         const auto new_font = CreateFontW(-scaled(15, GetDpiForWindow(window)), 0, 0, 0, FW_NORMAL,
             FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH, L"맑은 고딕");
-        for (int id = Preset; id <= CompactLabel; ++id) { SendMessageW(control(id), WM_SETFONT, reinterpret_cast<WPARAM>(new_font), TRUE); }
+        for (int id = Preset; id <= EnginePath; ++id) { SendMessageW(control(id), WM_SETFONT, reinterpret_cast<WPARAM>(new_font), TRUE); }
         if (font) { DeleteObject(font); }
         font = new_font;
     }
@@ -98,7 +122,7 @@ struct View {
     }
     void create()
     {
-        make_control(L"STATIC", L"로컬 사람 대 사람 · 렌주 | 개발 확인용 배치 · 대회 시간/자원 제한 미구현", 0, Banner);
+        make_control(L"STATIC", L"15×15 렌주 · 개발 확인용 배치 | 사람 대 사람 / 사람 대 Rapfi · 대회 설정 전체 준수 미검증", 0, Banner);
         make_control(L"COMBOBOX", L"", CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP, Preset);
         for (const auto name : preset_names) { SendMessageW(control(Preset), CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(name)); }
         SendMessageW(control(Preset), CB_SETCURSEL, 0, 0);
@@ -116,6 +140,14 @@ struct View {
         SendMessageW(control(Compact), EM_SETLIMITTEXT, 600, 0);
         make_control(L"STATIC", L"배치를 선택하고 시작하세요. 공식 대회 오프닝 데이터는 포함되어 있지 않습니다.", 0, Notice);
         make_control(L"STATIC", L"", 0, Status);
+        make_control(L"COMBOBOX", L"", CBS_DROPDOWNLIST | WS_TABSTOP, Mode);
+        for (const auto mode : {L"로컬 사람 대 사람", L"Rapfi A / 사람 B", L"사람 A / Rapfi B"}) {
+            SendMessageW(control(Mode), CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(mode));
+        }
+        SendMessageW(control(Mode), CB_SETCURSEL, 0, 0);
+        make_control(L"STATIC", L"Rapfi 경로", 0, EngineLabel);
+        make_control(L"EDIT", default_engine().c_str(), WS_BORDER | ES_AUTOHSCROLL | WS_TABSTOP, EnginePath);
+        SendMessageW(control(EnginePath), EM_SETLIMITTEXT, 2048, 0);
         select_preset();
         fonts();
         refresh_status();
@@ -136,7 +168,9 @@ struct View {
         move(Resign, 600, 48, 130, 30); move(Hints, 750, 48, 185, 30);
         move(CompactLabel, 20, 92, 145, 26); move(Compact, 170, 88, width - 190, 28);
         move(Notice, 20, 123, width - 40, 30);
-        move(Status, width - 275, 170, 250, height - 190);
+        move(Mode, 20, 164, 230, 200); move(EngineLabel, 265, 166, 90, 28);
+        move(EnginePath, 355, 160, width - 375, 30);
+        move(Status, width - 275, 220, 250, height - 240);
         InvalidateRect(window, nullptr, FALSE);
     }
     BoardGeometry geometry() const
@@ -170,6 +204,11 @@ struct View {
             case mt::EndReason::MoveLimit: s << L"200수 자동 무승부"; break;
             case mt::EndReason::BoardFull: s << L"만판"; break;
             case mt::EndReason::OpeningResult: s << L"준비 배치에서 이미 종료"; break;
+            case mt::EndReason::EngineStartFailure: s << L"외부 엔진 시작 실패 (승패 미확정)"; break;
+            case mt::EndReason::EngineTimeout: s << L"외부 엔진 시간 초과"; break;
+            case mt::EndReason::EngineExited: s << L"외부 엔진 비정상 종료"; break;
+            case mt::EndReason::EngineBadOutput: s << L"외부 엔진 응답 형식 오류"; break;
+            case mt::EndReason::EngineIllegalMove: s << L"외부 엔진 불법 착수"; break;
             default: s << L"대국 종료"; break;
             }
             s << L"\n";
@@ -181,10 +220,19 @@ struct View {
               << (last.placed_by ? L" / 참가자 " : L" / 준비 배치")
               << (last.placed_by ? participant(*last.placed_by) : L"") << L"\n";
         }
-        s << L"\n" << hint_text << L"\n\n흑 금수 클릭은 반칙패입니다.\n\n개발 확인용 배치\n공식 대회 오프닝 아님\n시계·자원 제한 미구현\n\nID: " << wide_ascii(controller.source_opening().data_id());
+        s << L"\n" << hint_text;
+        if (ai_actor) {
+            s << L"\n\nRapfi 참가자 " << participant(*ai_actor) << L" · 남은 시간 " << ai_remaining_ms / 1000
+              << L"초" << (ai_busy ? L" · 응답 대기" : L"");
+        }
+        s << L"\n" << engine_text;
+        s << L"\n\n흑 금수 클릭은 반칙패입니다.\n개발 확인용 배치 · 공식 아님\n사람 시계 미구현\n대회 설정 전체 준수 미검증\nID: " << wide_ascii(controller.source_opening().data_id());
         SetWindowTextW(control(Status), s.str().c_str());
         EnableWindow(control(Resign), controller.phase() == mt::Phase::Playing);
         EnableWindow(control(Restart), controller.phase() != mt::Phase::NotStarted);
+        EnableWindow(control(Mode), controller.phase() != mt::Phase::Playing);
+        EnableWindow(control(EnginePath), controller.phase() != mt::Phase::Playing);
+        SetWindowTextW(control(Resign), ai_actor ? L"사람 기권" : L"현재 차례 기권");
     }
     void schedule_hints()
     {
@@ -212,6 +260,31 @@ struct View {
         refresh_status();
         InvalidateRect(window, nullptr, FALSE);
     }
+    void schedule_engine()
+    {
+        engine_worker.cancel(); ai_busy = false;
+        if (ai_actor && controller.phase() != mt::Phase::Playing) { engine_text = L"대국 종료 · 엔진 요청 취소/정리"; }
+        else if (ai_actor && controller.game().next_participant() != ai_actor) { engine_text = L"사람 입력 대기"; }
+        if (ai_actor && controller.phase() == mt::Phase::Playing && controller.game().next_participant() == ai_actor) {
+            ai_busy = true; engine_text = L"Rapfi 초기화/사고 중… 창과 재시작은 사용 가능합니다.";
+            engine_worker.submit({controller.token(), controller.game(), *ai_actor, engine_path,
+                executable_directory() / L"logs", {30000, ai_remaining_ms, 10000}});
+        }
+        refresh_status();
+    }
+    void poll_engine()
+    {
+        const auto result = engine_worker.take_result(); if (!result) { return; }
+        if (result->token != controller.token() || !ai_actor || result->actor != *ai_actor
+            || controller.phase() != mt::Phase::Playing) { return; }
+        ai_busy = false;
+        ai_remaining_ms = std::max(0, ai_remaining_ms - static_cast<int>(result->elapsed_ms));
+        const auto response = ai::apply_result(controller, *result);
+        engine_text = result->outcome == ai::Outcome::Move ? L"Rapfi 응답 처리 완료" : L"Rapfi 오류: " + wide_ascii(result->detail.substr(0, 100));
+        if (!result->log_path.empty()) { engine_text += L"\n로그: " + result->log_path.filename().wstring(); }
+        notice(response.ok() ? L"Rapfi 응답을 기존 대국 제어에서 검증·처리했습니다." : response_error(response));
+        schedule_hints();
+    }
     void start()
     {
         const int length = GetWindowTextLengthW(control(Compact));
@@ -225,21 +298,35 @@ struct View {
         const auto preset = mt::development_data(static_cast<mt::DevelopmentPosition>(std::clamp(index, 0, 4)));
         const std::string compact(text.begin(), text.end());
         const auto owner = SendMessageW(control(Owner), CB_GETCURSEL, 0, 0) == 1 ? st::Participant::B : st::Participant::A;
+        const auto mode = SendMessageW(control(Mode), CB_GETCURSEL, 0, 0);
+        std::filesystem::path selected_engine;
+        if (mode != 0) {
+            const auto path_length = GetWindowTextLengthW(control(EnginePath));
+            std::wstring path(static_cast<std::size_t>(path_length) + 1, L'\0');
+            GetWindowTextW(control(EnginePath), path.data(), path_length + 1); path.resize(static_cast<std::size_t>(path_length));
+            selected_engine = std::filesystem::absolute(std::filesystem::path(path));
+            const auto error = ai::validate_rapfi_installation(selected_engine);
+            if (!error.empty()) { notice(L"Rapfi 시작 설정 오류: " + wide_ascii(error) + L" · 기존 대국 보존"); return; }
+        }
         const auto result = controller.start_compact(compact == preset.compact ? preset.id : "dev-user-input-v1", compact, owner);
         if (!result.ok()) { notice(response_error(result) + L" · 진행 중 대국은 보존됩니다."); return; }
+        engine_worker.cancel(); ai_busy = false; ai_remaining_ms = 180000;
+        ai_actor = mode == 1 ? std::optional{st::Participant::A} : mode == 2 ? std::optional{st::Participant::B} : std::nullopt;
+        engine_path = selected_engine; engine_text = ai_actor ? L"사람 대 Rapfi" : L"외부 엔진 미사용";
         notice(L"개발 확인용 배치로 시작했습니다. 교차점을 클릭하면 즉시 확정됩니다.");
-        schedule_hints();
+        schedule_hints(); schedule_engine();
     }
     void click(Pixel pixel)
     {
         if (controller.phase() != mt::Phase::Playing) { notice(L"착수할 수 없는 상태입니다. 시작 또는 재시작하세요."); return; }
+        if (ai_actor && controller.game().next_participant() == ai_actor) { notice(L"Rapfi 차례입니다. 사람의 착수는 받지 않습니다."); return; }
         const auto position = geometry().hit(pixel);
         if (!position) { notice(L"교차점 가까이를 클릭하세요. 판 밖과 교차점 사이 클릭은 반영하지 않습니다."); return; }
         const auto result = controller.place(controller.token(), *controller.game().next_participant(), *position);
         if (!result.ok()) { notice(response_error(result)); return; }
         notice(coordinate(*position) + (result.decision.verdict == rules::Verdict::Forbidden
             ? L" 금수 · 백 승리로 종료했습니다." : L" 착수를 확정했습니다."));
-        schedule_hints();
+        schedule_hints(); schedule_engine();
     }
     void command(int id, int notification)
     {
@@ -248,11 +335,13 @@ struct View {
         else if (id == Restart && notification == BN_CLICKED) {
             const auto result = controller.restart(controller.token());
             if (!result.ok()) { notice(response_error(result)); return; }
-            notice(L"동일한 준비 배치·색 배정으로 재시작했습니다."); schedule_hints();
+            ai_remaining_ms = 180000;
+            notice(L"동일한 준비 배치·색 배정으로 재시작했습니다."); schedule_hints(); schedule_engine();
         } else if (id == Resign && notification == BN_CLICKED && controller.game().next_participant()) {
-            const auto result = controller.resign(controller.token(), *controller.game().next_participant());
+            const auto actor = ai_actor ? (*ai_actor == st::Participant::A ? st::Participant::B : st::Participant::A) : *controller.game().next_participant();
+            const auto result = controller.resign(controller.token(), actor);
             if (!result.ok()) { notice(response_error(result)); return; }
-            notice(L"현재 차례 참가자가 기권했습니다."); schedule_hints();
+            notice(L"참가자가 기권했습니다."); schedule_hints(); schedule_engine();
         } else if (id == Hints && notification == BN_CLICKED) {
             show_hints = SendMessageW(control(Hints), BM_GETCHECK, 0, 0) == BST_CHECKED;
             schedule_hints();
@@ -340,7 +429,7 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
         case WM_PAINT: paint(*view); return 0;
         case WM_ERASEBKGND: return 1;
         case WM_SIZE: view->layout(); return 0;
-        case WM_TIMER: view->poll_hints(); return 0;
+        case WM_TIMER: view->poll_hints(); view->poll_engine(); return 0;
         case WM_GETMINMAXINFO: {
             auto* limits = reinterpret_cast<MINMAXINFO*>(lparam);
             limits->ptMinTrackSize = {scaled(980, GetDpiForWindow(window)), scaled(700, GetDpiForWindow(window))}; return 0;
@@ -352,7 +441,7 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
         }
         case WM_CLOSE:
             static_cast<void>(view->controller.close(view->controller.token()));
-            view->worker.cancel(); DestroyWindow(window); return 0;
+            view->worker.cancel(); view->engine_worker.cancel(); DestroyWindow(window); return 0;
         case WM_DESTROY: KillTimer(window, 1); PostQuitMessage(0); return 0;
         default: break;
         }

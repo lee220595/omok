@@ -1,6 +1,6 @@
 # 오목 프로젝트 (omok)
 
-Windows 10·11 64비트용 C++ 게임 프로젝트. 현재 버전 0.1.0에는 개발 확인용 준비 배치로 시작하는 로컬 사람 대 사람 대국 코드가 있다. match·Win32 보드·클릭 착수·승리/금수패/200수 무승부·기권·재시작·비동기 금수 표시와 자동 테스트를 구현했다. **실제 GUI 대국 수동 검증이 남아 이 단계 전체는 미완료다.** [검증 기록과 수동 절차](docs/verification-match.md)를 따른다. 기보·외부 AI·대회 시계/자원 강제·자체 AI는 미구현이다. 기본은 Gomocup 렌주 일반 대회 잠정 기준이며 참가 연도·리그는 추후 선정한다.
+Windows 10·11 64비트용 C++ 게임 프로젝트. 로컬 사람 대 사람과 사용자 설치 Rapfi를 연결하는 사람 대 AI 코드를 제공한다. 15×15 렌주·준비 배치·기권/재시작·비동기 금수 표시를 유지한다. 실제 Rapfi 흑/백 응답·사람 클릭·재시작/기권·취소/닫기를 확인했지만 전체 대국/배포 검증은 남아 있다. [최신 Rapfi 검증](docs/verification-rapfi.md)과 [이전 GUI 검증](docs/verification-match.md)을 구분한다. AI 대 AI·Swap2 연결·기보·사람 시계·자체 AI는 미구현이며 대회 설정 전체 준수를 주장하지 않는다.
 
 ## 준비와 확인
 현재 컴퓨터에서는 다음 도구를 확인했다. 추가 설치 없이 MinGW 빌드 가능하다.
@@ -84,7 +84,21 @@ Compress-Archive -Path .\dist\omok\* -DestinationPath .\dist\omok-0.1.0-windows-
 4. “흑 금수 표시”는 기본 켬이며 흑 차례에만 빈 교차점의 금수를 붉은 X로 표시한다. 계산 중에도 착수를 요청할 수 있고 실제 판정은 최신 상태로 수행한다. 마지막 성공 착수는 붉은 원이다.
 5. compact 입력을 직접 바꿔 시작할 수 있다. 형식/중복/순서/금수 등으로 가져오기에 실패하면 진행 중 대국을 보존하고 원인을 표시한다. 빈 보드 시작은 제공하지 않는다.
 
-기본 3수 외에 승리 7수·금수 8수·무승부 199수·이미 종료된 9수 배치가 있다. 모두 자체 작성한 개발용이며 공식 오프닝이 아니다. 수동 확인용 착수 좌표와 예상 결과는 [검증 절차](docs/verification-match.md)에 있다. 시간/자원 제한·외부 AI·Swap2 GUI·기보/복기는 현재 제공하지 않는다.
+기본 3수 외에 승리 7수·금수 8수·무승부 199수·이미 종료된 9수 배치가 있다. 모두 자체 작성한 개발용이며 공식 오프닝이 아니다. 이전 수동 절차는 [당시 검증](docs/verification-match.md)에 보존하며, Rapfi 추가로 보드 위쪽 여백이 240 논리 픽셀로 바뀌어 과거 고정 픽셀 예시는 현재 화면에 사용하지 않는다. 사람 시계·Swap2 GUI·기보/복기는 아직 없다.
+
+### 사람 대 Rapfi
+
+Rapfi는 빌드/배포물에 포함하지 않는다. 사용자가 실행 파일·config.toml·가중치 전체를 `external/rapfi/Rapfi-engine/`에 준비한다. 현재 PC에서는 `pbrain-rapfi-windows-avx2.exe`를 사용한다. GUI가 상위 프로젝트 폴더에서 설치 위치를 찾아 CPU에 맞는 AVX2/SSE 경로를 채우며, 다른 위치라면 “Rapfi 경로”에 실행 파일의 전체 경로를 입력한다. 필요한 파일과 해시는 [설치·계약](docs/rapfi-integration.md)에 있다.
+
+대국 방식에서 **사람 A / Rapfi B** 또는 **Rapfi A / 사람 B**를 선택하고 흑/백 배정과 준비 배치를 정한 뒤 시작한다. 기본 3수는 백 차례이므로 Rapfi B를 백으로 두면 바로 엔진 응답을 받는다. 사람은 자신의 차례에만 클릭할 수 있다. 사고 중에도 재시작·사람 기권·닫기를 사용할 수 있다. 통신 로그는 실행 파일 옆 `logs/engine-*.log`에 남긴다.
+
+GUI는 AI 한 수 30초·누적 예산 180초, 프로세스 메모리 1GiB·한 논리 CPU를 제한한다. 엔진에는 모델 여유를 위해 메모리 예산 512MiB와 준비/통신 여유를 뺀 검색 시간을 전달한다. 사람 시계와 대회 전체 정책 검증은 별도다. 초기 연결은 매 요청마다 새 프로세스를 만들고 전체 BOARD를 복원하므로 캐시를 재사용하지 않는다.
+
+빌드 후 실제 엔진 연결만 검증할 수도 있다. `1000`은 테스트용 착수 예산이며 GUI 시간 설정 변경 기능이 아니다.
+
+```powershell
+.\build\native-release\bin\omok_engine_probe.exe .\external\rapfi\Rapfi-engine\pbrain-rapfi-windows-avx2.exe 1000
+```
 
 ### CMake 프리셋과 MSVC 대안
 ASCII 전용 소스 경로에서는 `cmake --preset mingw-release`, `cmake --build --preset mingw-release`도 사용할 수 있다. **현재 한글 폴더에서는 위 빌드 스크립트가 검증 경로**다. 실패한 최초 `build/mingw-release` 캐시는 사용하지 않는다.
@@ -106,7 +120,7 @@ src/state/    15×15 상태·좌표·색 배정·이력·결과 저장 모델
 src/rules/    순수 렌주·구조 검사·일반 대국 200수 정책
 src/opening/  준비 배치 로더·순차 복원·인계·독립 Swap2 전환
 src/match/    대국 제어·기권·재시작·버전, 금수 스냅샷 작업자(시계 미구현)
-src/ai/       외부 AI 프로세스·통신 경계(미구현)
+src/ai/       Rapfi 프로세스·Gomocup BOARD·CPU 검사·비동기 응답
 src/records/  기보·복기 경계(미구현)
 scripts/      재현 가능한 빌드
 tests/        CTest 상태·규칙·오프닝·match와 자체 테스트 배치
@@ -122,7 +136,7 @@ licenses/     배포용 외부 라이선스 원문
 ctest --test-dir .\build\native-release --output-on-failure --no-tests=error
 ```
 
-현재 등록 수는 **81개**(상태 14·규칙 39·오프닝 14·match 14)이며 실제 최종 결과는 [최신 검증](docs/verification-match.md)에 기록한다. CHECK는 NDEBUG와 관계없이 동작한다. 상태·규칙·오프닝·match 및 좌표 테스트는 Windows 헤더·GUI 링크를 사용하지 않는다. 다만 루트 프로젝트는 기존 Windows x64 전용 구성을 유지하며 비Windows 빌드를 검증한 것은 아니다.
+현재 등록 수는 **86개**(상태14·규칙39·오프닝14·match14·AI5)다. AI 테스트는 Win32 프로세스와 모의 엔진을 사용하며 실제 Rapfi 검증은 별도다. [최신 결과](docs/verification-rapfi.md)를 따른다. CHECK는 NDEBUG와 관계없이 동작한다. 상태·규칙·오프닝·match·좌표 계산은 Windows 독립이며 루트 빌드는 Windows x64 전용이다.
 
 좌표는 `Coordinate{row, column}`, 왼쪽 위가 `(0,0)`이며 두 축은 0~14다. 상태 변경은 구조적 유효성을 검사하고 실패 시 전체 상태를 보존한다. 다음 돌 색은 호출자가 명시하며, 참가자 A/B·색·자신/상대·실제 배치 참가자를 구분한다. `finish`는 외부 판정 결과를 기록할 뿐 승패를 판정하지 않는다. 자세한 책임과 변환 경계는 [상태 모델 계약](docs/state-model.md)을 따른다. 이 API를 대국 제어 없이 GUI/AI 입력에 직접 연결하지 않는다.
 
@@ -159,6 +173,7 @@ python .\scripts\compare_opening.py --fetch --output .\docs\verification\opening
 
 - [개발 지침](AGENTS.md) · [승인 기록](docs/requirements-pending.md)
 - [다음 단계 개발 인계](docs/handoff.md)
+- [Rapfi 설치·실행·변환/프로세스 계약](docs/rapfi-integration.md) · [실제 엔진·GUI 검증](docs/verification-rapfi.md)
 - [로컬 대국·좌표·금수 작업자 계약](docs/match-contract.md) · [실제 검증·남은 수동 절차](docs/verification-match.md)
 - [상태 모델 API·좌표 계약](docs/state-model.md) · [상태 구현 검증](docs/verification-state.md)
 - [규칙 계약](docs/rules-spec.md) · [판정 사례](docs/renju-cases.md) · [규칙·심판 대조 검증](docs/verification-rules.md)
