@@ -130,7 +130,7 @@ struct View {
         SendMessageW(control(Owner), CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"흑 A / 백 B"));
         SendMessageW(control(Owner), CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"흑 B / 백 A"));
         SendMessageW(control(Owner), CB_SETCURSEL, 0, 0);
-        make_control(L"BUTTON", L"시작", BS_PUSHBUTTON | WS_TABSTOP, Start);
+        make_control(L"BUTTON", L"대국 시작", BS_PUSHBUTTON | WS_TABSTOP, Start);
         make_control(L"BUTTON", L"재시작", BS_PUSHBUTTON | WS_TABSTOP, Restart);
         make_control(L"BUTTON", L"현재 차례 기권", BS_PUSHBUTTON | WS_TABSTOP, Resign);
         make_control(L"BUTTON", L"흑 금수 표시", BS_AUTOCHECKBOX | WS_TABSTOP, Hints);
@@ -138,7 +138,7 @@ struct View {
         make_control(L"STATIC", L"compact 배치 입력", 0, CompactLabel);
         make_control(L"EDIT", L"", WS_BORDER | ES_AUTOHSCROLL | WS_TABSTOP, Compact);
         SendMessageW(control(Compact), EM_SETLIMITTEXT, 600, 0);
-        make_control(L"STATIC", L"배치를 선택하고 시작하세요. 공식 대회 오프닝 데이터는 포함되어 있지 않습니다.", 0, Notice);
+        make_control(L"STATIC", L"대국 방식·배치 선택 → [대국 시작] → 교차점 클릭. 착수 후 차례는 자동 교대됩니다.", 0, Notice);
         make_control(L"STATIC", L"", 0, Status);
         make_control(L"COMBOBOX", L"", CBS_DROPDOWNLIST | WS_TABSTOP, Mode);
         for (const auto mode : {L"로컬 사람 대 사람", L"Rapfi A / 사람 B", L"사람 A / Rapfi B"}) {
@@ -190,7 +190,9 @@ struct View {
         } else { s << L"참가자 색 미배정\n"; }
         if (controller.phase() == mt::Phase::Playing) {
             s << L"차례: " << participant(*game.next_participant()) << L" (" << stone(*game.next_color()) << L")\n";
-        } else if (controller.phase() == mt::Phase::NotStarted) { s << L"시작 대기\n"; }
+            s << (ai_actor && game.next_participant() == ai_actor
+                ? L"Rapfi 응답 대기 · 사람 착수 불가\n" : L"교차점 클릭 · 차례 자동 교대\n");
+        } else if (controller.phase() == mt::Phase::NotStarted) { s << L"시작 대기 · 착수 전\n위 [대국 시작]을 누르세요.\n"; }
         else {
             if (const auto won = std::get_if<st::Won>(&game.result())) {
                 s << L"결과: " << participant(won->winner) << L" (" << stone(*game.colors().color_of(won->winner)) << L") 승리\n";
@@ -238,7 +240,8 @@ struct View {
     {
         hints.clear();
         worker.cancel();
-        if (!show_hints) { hint_text = L"흑 금수 표시 꺼짐"; }
+        if (controller.phase() != mt::Phase::Playing) { hint_text = L"대국 종료 · 추가 착수 불가"; }
+        else if (!show_hints) { hint_text = L"흑 금수 표시 꺼짐"; }
         else if (controller.phase() == mt::Phase::Playing && controller.game().next_color() == st::StoneColor::Black) {
             hint_text = L"흑 금수 계산 중… 착수 가능";
             worker.submit({controller.token(), controller.game()});
@@ -313,12 +316,14 @@ struct View {
         engine_worker.cancel(); ai_busy = false; ai_remaining_ms = 180000;
         ai_actor = mode == 1 ? std::optional{st::Participant::A} : mode == 2 ? std::optional{st::Participant::B} : std::nullopt;
         engine_path = selected_engine; engine_text = ai_actor ? L"사람 대 Rapfi" : L"외부 엔진 미사용";
-        notice(L"개발 확인용 배치로 시작했습니다. 교차점을 클릭하면 즉시 확정됩니다.");
+        notice(controller.phase() == mt::Phase::Playing
+            ? L"개발 확인용 배치로 시작했습니다. 오른쪽 차례를 확인하세요. 클릭 즉시 착수·자동 교대됩니다."
+            : L"이미 종료된 준비 배치입니다. 결과만 표시하며 착수는 받지 않습니다.");
         schedule_hints(); schedule_engine();
     }
     void click(Pixel pixel)
     {
-        if (controller.phase() != mt::Phase::Playing) { notice(L"착수할 수 없는 상태입니다. 시작 또는 재시작하세요."); return; }
+        if (controller.phase() != mt::Phase::Playing) { notice(L"현재 착수할 수 없습니다. [대국 시작] 또는 [재시작]을 누르세요."); return; }
         if (ai_actor && controller.game().next_participant() == ai_actor) { notice(L"Rapfi 차례입니다. 사람의 착수는 받지 않습니다."); return; }
         const auto position = geometry().hit(pixel);
         if (!position) { notice(L"교차점 가까이를 클릭하세요. 판 밖과 교차점 사이 클릭은 반영하지 않습니다."); return; }
