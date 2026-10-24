@@ -10,10 +10,13 @@ int wmain(int argc, wchar_t** argv)
     const auto error = omok::ai::validate_rapfi_installation(exe);
     if (!error.empty()) { std::cerr << error << '\n'; return 1; }
     const int turn = argc >= 3 ? std::stoi(argv[2]) : 1000;
-    for (int n = 0; n < 3; ++n) {
+    for (int n = 0; n < 5; ++n) {
         omok::match::Controller c;
-        const auto owner = n == 2 ? omok::state::Participant::B : omok::state::Participant::A;
-        if (!c.start_compact("dev-basic-v1", "h8i8g9", owner).ok()) return 1;
+        const auto owner = (n == 2 || n == 4) ? omok::state::Participant::B : omok::state::Participant::A;
+        if (n >= 3) {
+            if (!c.start_direct(owner).ok()) return 1;
+            if (n == 4 && !c.place(c.token(), owner, {7, 7}).ok()) return 1;
+        } else if (!c.start_compact("dev-basic-v1", "h8i8g9", owner).ok()) return 1;
         if (n == 1 && !c.place(c.token(), *c.game().next_participant(), {8, 8}).ok()) return 1;
         const auto actor = *c.game().next_participant();
         const auto before = c;

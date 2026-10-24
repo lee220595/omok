@@ -1,0 +1,64 @@
+> ABOUT
+< MESSAGE Load config from "config.toml"
+<
+< MESSAGE Evaluator set to mix9svq.
+<
+< name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+> START 15
+<
+< OK
+> INFO rule 4
+INFO max_memory 536870912
+INFO thread_num 1
+INFO pondering 0
+INFO game_type 0
+ABOUT
+<
+< name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+> INFO timeout_turn 398
+INFO timeout_match 180000
+INFO time_left 179635
+> BOARD
+7,7,2
+DONE
+<
+< MESSAGE mix9svq nnue: load weight from mix9svqrenju_bs15_black.bin.lz4
+<
+< MESSAGE mix9svq nnue: load weight from mix9svqrenju_bs15_white.bin.lz4
+<
+< MESSAGE OptiTime 331ms | MaxTime 368ms
+<
+< MESSAGE Depth 2-3 | Eval -415 | Time 0ms | H5 G8
+<
+< MESSAGE Depth 3-4 | Eval -322 | Time 0ms | H5 G8 I5
+<
+< MESSAGE Depth 4-4 | Eval -322 | Time 0ms | H5 G8 I5
+<
+< MESSAGE Depth 5-5 | Eval -297 | Time 0ms | H5 G8 I5 G7
+<
+< MESSAGE Depth 6-7 | Eval 55 | Time 1ms | H5 G8 I8 G9 G6 I7
+<
+< MESSAGE Depth 7-7 | Eval 55 | Time 1ms | H5 G8 I8 G9 G6 I7
+<
+< MESSAGE Depth 8-10 | Eval -248 | Time 3ms | H6 I8 G8 I7 I6 J6 G9
+<
+< MESSAGE Depth 9-10 | Eval -248 | Time 3ms | H6 I8 G8 I7 I6 J6 G9
+<
+< MESSAGE Depth 10-12 | Eval -183 | Time 5ms | H6 I8 G8 I7 I6 J6 G9 J7
+<
+< MESSAGE Depth 11-18 | Eval -290 | Time 64ms | H7 G6 G8 I6 H6 J7 H5 I5 J6 I9 J10
+<
+< MESSAGE Depth 12-21 | Eval -254 | Time 87ms | G7 G6 H6 F8 G8 I7 G9 G11 F9 H9 H11 E10
+<
+< MESSAGE Depth 13-18 | Eval -254 | Time 97ms | G7 G6 H6 F8 G8 I7 G9 G11 F9 H9 H11 E10
+<
+< MESSAGE Depth 14-17 | Eval -254 | Time 112ms | G7 G6 H6 F8 G8 I7 G9 G11 F9 H9 H11 E10
+<
+< MESSAGE Depth 15-15 | Eval -254 | Time 144ms | G7 G6 H6 F8 G8 I7 G9 G11 F9 H9 H11 E10
+<
+< MESSAGE Depth 15-20 | Eval -286 | Time 370ms | G7 G6
+<
+< MESSAGE Speed 232K | Depth 15-20 | Eval -286 | Node 86K | Time 370ms
+<
+< 6,6
+# outcome=0 pid=37064 elapsed_ms=900.561 reaped=1 forced=0 exit=0 detail=

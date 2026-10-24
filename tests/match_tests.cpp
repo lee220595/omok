@@ -54,6 +54,44 @@ void start_contract()
     CHECK(terminal.place(token, st::Participant::B, {1, 1}).error == mt::Error::NotPlaying);
     CHECK(terminal == finished);
 }
+void direct_renju()
+{
+    for (const auto black : {st::Participant::A, st::Participant::B}) {
+        auto c = controller();
+        const auto previous_token = c.token();
+        CHECK(c.start_direct(black).ok());
+        const auto start = c;
+        CHECK(c.phase() == mt::Phase::Playing && c.game().history().empty());
+        CHECK(c.source_opening().mode() == op::Mode::DirectRenju);
+        CHECK(c.game().next_color() == st::StoneColor::Black && c.game().next_participant() == black);
+        const auto white = black == st::Participant::A ? st::Participant::B : st::Participant::A;
+        CHECK(c.start_direct(static_cast<st::Participant>(99)).error == mt::Error::InvalidOpening && c == start);
+        CHECK(c.place(previous_token, black, {7, 7}).error == mt::Error::StaleInput && c == start);
+        CHECK(c.place(c.token(), white, {7, 7}).error == mt::Error::WrongParticipant && c == start);
+        CHECK(c.place(c.token(), black, {-1, 0}).error == mt::Error::InvalidPlacement && c == start);
+        const std::array<st::Coordinate, 9> moves{{{7, 0}, {0, 0}, {7, 1}, {0, 2}, {7, 2}, {0, 4}, {7, 3}, {0, 6}, {7, 4}}};
+        for (std::size_t i = 0; i < moves.size(); ++i) {
+            const auto actor = i % 2 == 0 ? black : white;
+            CHECK(c.game().next_participant() == actor);
+            CHECK(c.place(c.token(), actor, moves[i]).ok());
+            CHECK(c.game().history().size() == i + 1 && c.game().history().back().placed_by == actor);
+            if (i == 0) {
+                const auto before = c;
+                CHECK(c.place(c.token(), white, moves[i]).error == mt::Error::InvalidPlacement && c == before);
+            }
+        }
+        CHECK(c.phase() == mt::Phase::Finished && c.end_reason() == mt::EndReason::Five);
+        CHECK(c.game().result() == st::GameResult{st::Won{black}});
+        const auto ended = c;
+        CHECK(c.place(c.token(), white, {1, 1}).error == mt::Error::NotPlaying && c == ended);
+        const auto old = c.token();
+        CHECK(c.restart(old).ok() && c.game() == start.game() && c.source_opening() == start.source_opening());
+        CHECK(c.token().session != old.session && c.events().front().kind == mt::EventKind::Restarted);
+        const auto restarted = c;
+        CHECK(c.place(old, black, {7, 7}).error == mt::Error::StaleInput && c == restarted);
+        CHECK(c.resign(c.token(), black).ok() && c.game().result() == st::GameResult{st::Won{white}});
+    }
+}
 void turns()
 {
     for (const auto black : {st::Participant::A, st::Participant::B}) {
@@ -318,6 +356,7 @@ int main(int argc, char** argv)
         const std::string name = argv[1];
         if (name == "start_contract") { start_contract(); }
         else if (name == "turns") { turns(); }
+        else if (name == "direct_renju") { direct_renju(); }
         else if (name == "rejected") { rejected(); }
         else if (name == "win") { win(); }
         else if (name == "forbidden") { forbidden(); }

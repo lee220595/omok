@@ -74,6 +74,23 @@ void loader(const std::string& path)
     CHECK(load_compact("empty", "", output).ok());
     CHECK(output.moves.empty());
 }
+void direct_renju()
+{
+    for (const auto owner : {Participant::A, Participant::B}) {
+        auto session = after_three(); // new start must discard an incomplete Swap2 session
+        CHECK(session.begin_direct_renju(owner).ok());
+        CHECK(session.mode() == Mode::DirectRenju && session.stage() == Stage::Complete);
+        CHECK(session.data_id() == "direct-renju-v1" && session.game().history().empty());
+        CHECK(std::all_of(session.game().board().begin(), session.game().board().end(), [](auto cell) { return cell == Cell::Empty; }));
+        CHECK(session.game().next_color() == StoneColor::Black && session.game().next_participant() == owner);
+        CHECK(session.handoff().can_enter_main_game() && session.handoff().total_placements == 0);
+        CHECK(session.events().size() == 3 && session.events()[1].black_owner == owner);
+        CHECK(session.events()[2].type == EventType::Completed);
+        const auto before = session;
+        CHECK(session.begin_direct_renju(static_cast<Participant>(99)).error == Error::InvalidParticipant);
+        CHECK(session == before);
+    }
+}
 void prepared_restore()
 {
     for (const auto owner : {Participant::A, Participant::B}) {
@@ -399,6 +416,7 @@ int main(int argc, char** argv)
         if (argc != 3) { return 2; }
         const std::string_view name = argv[1];
         if (name == "loader") { loader(argv[2]); }
+        else if (name == "direct_renju") { direct_renju(); }
         else if (name == "prepared_restore") { prepared_restore(); }
         else if (name == "prepared_rejection") { prepared_rejection(); }
         else if (name == "prepared_terminal") { prepared_terminal(); }

@@ -71,7 +71,7 @@ Handoff Session::handoff() const noexcept
     case Stage::FinalChoice: input = state::Participant::A; break;
     case Stage::Finished: continuation = Continuation::Terminal; break;
     case Stage::Complete:
-        continuation = mode_ == Mode::PreparedRenju ? Continuation::RenjuReady
+        continuation = (mode_ == Mode::PreparedRenju || mode_ == Mode::DirectRenju) ? Continuation::RenjuReady
             : Continuation::RuleContractRequired;
         break;
     }
@@ -119,6 +119,23 @@ Status Session::restore_prepared(const PreparedData& data, state::Participant bl
     candidate.record(EventType::BatchPlaced); // no real participant placed imported stones
     candidate.stage_ = std::holds_alternative<InProgress>(candidate.game_.result())
         ? Stage::Complete : Stage::Finished;
+    candidate.record(EventType::Completed);
+    *this = std::move(candidate);
+    return {};
+}
+
+Status Session::begin_direct_renju(state::Participant black_owner)
+{
+    if (!valid(black_owner)) { return {Error::InvalidParticipant}; }
+    Session candidate;
+    candidate.mode_ = Mode::DirectRenju;
+    candidate.stage_ = Stage::Complete;
+    candidate.data_id_ = "direct-renju-v1";
+    if (candidate.game_.reset({black_owner, state::StoneColor::Black}) != state::StateError::None) {
+        return {Error::StorageFailure};
+    }
+    candidate.record(EventType::Started);
+    candidate.record(EventType::ColorsAssigned, {}, {}, black_owner);
     candidate.record(EventType::Completed);
     *this = std::move(candidate);
     return {};

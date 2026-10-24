@@ -36,6 +36,11 @@ std::string board_command(const state::GameState& game, state::Participant actor
     }
     return command + "DONE\r\n";
 }
+std::string move_command(const state::GameState& game, state::Participant actor)
+{
+    const auto board = board_command(game, actor); // validate actor/color even on an empty board
+    return game.history().empty() ? "BEGIN\r\n" : board;
+}
 match::Response apply_result(match::Controller& controller, const Result& result)
 {
     if (result.token != controller.token() || result.outcome == Outcome::Cancelled) { return {match::Error::StaleInput}; }

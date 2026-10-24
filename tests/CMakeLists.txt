@@ -27,7 +27,7 @@ foreach(mode IN ITEMS normal bad long exit crashafter timeout hang startfail boo
         "$<TARGET_FILE:omok_mock_engine>" "$<TARGET_FILE_DIR:omok_mock_engine>/mock-${mode}.exe")
 endforeach()
 add_dependencies(omok_ai_tests omok_mock_engine)
-foreach(case IN ITEMS protocol normal errors stale worker)
+foreach(case IN ITEMS protocol normal errors stale worker first_move)
     add_test(NAME ai.${case} COMMAND omok_ai_tests "${case}" "$<TARGET_FILE:omok_mock_engine>")
     set_tests_properties(ai.${case} PROPERTIES TIMEOUT 30 LABELS ai)
 endforeach()
@@ -38,7 +38,7 @@ omok_compiler_options(omok_match_tests)
 if(MINGW)
     target_link_options(omok_match_tests PRIVATE -static -static-libgcc -static-libstdc++)
 endif()
-foreach(case IN ITEMS start_contract turns rejected win forbidden draw resignation restart_stale close geometry hints worker worker_lifecycle benchmark)
+foreach(case IN ITEMS start_contract direct_renju turns rejected win forbidden draw resignation restart_stale close geometry hints worker worker_lifecycle benchmark)
     add_test(NAME match.${case} COMMAND omok_match_tests "${case}")
     set_tests_properties(match.${case} PROPERTIES TIMEOUT 30 LABELS match)
 endforeach()
@@ -49,7 +49,7 @@ omok_compiler_options(omok_opening_tests)
 if(MINGW)
     target_link_options(omok_opening_tests PRIVATE -static -static-libgcc -static-libstdc++)
 endif()
-foreach(case IN ITEMS loader prepared_restore prepared_rejection prepared_terminal prepared_limit
+foreach(case IN ITEMS loader direct_renju prepared_restore prepared_rejection prepared_terminal prepared_limit
         prepared_first_move swap2_take_black swap2_take_white swap2_two_take_black swap2_two_take_white
         swap2_rejections swap2_atomic event_history initialization)
     add_test(NAME opening.${case} COMMAND omok_opening_tests "${case}"

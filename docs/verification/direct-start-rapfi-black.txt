@@ -1,0 +1,28 @@
+> ABOUT
+< MESSAGE Load config from "config.toml"
+<
+< MESSAGE Evaluator set to mix9svq.
+<
+< name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+> START 15
+<
+< OK
+> INFO rule 4
+INFO max_memory 536870912
+INFO thread_num 1
+INFO pondering 0
+INFO game_type 0
+ABOUT
+<
+< name="Rapfi", version="0.43.01 (clang++ 19.1.5 on Windows SSE41 AVX2)", author="Rapfi developers (see AUTHORS file)", country="China"
+> INFO timeout_turn 392
+INFO timeout_match 180000
+INFO time_left 179619
+> BEGIN
+<
+< MESSAGE mix9svq nnue: load weight from mix9svqrenju_bs15_black.bin.lz4
+<
+< MESSAGE mix9svq nnue: load weight from mix9svqrenju_bs15_white.bin.lz4
+<
+< 7,7
+# outcome=0 pid=31520 elapsed_ms=540.914 reaped=1 forced=0 exit=0 detail=

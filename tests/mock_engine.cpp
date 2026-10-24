@@ -17,7 +17,7 @@ int wmain(int argc, wchar_t** argv)
             std::cout << "name=\"Mock\", version=\"fixture\"" << std::endl;
         }
         else if (line == "START 15") { std::cout << (mode.find(L"startfail") != std::wstring::npos ? "ERROR unsupported" : "OK") << std::endl; }
-        else if (line == "DONE") {
+        else if (line == "DONE" || line == "BEGIN") {
             if (mode.find(L"crashafter") != std::wstring::npos) { std::cout << "8,8" << std::endl; return 17; }
             if (mode.find(L"exit") != std::wstring::npos) { return 17; }
             if (mode.find(L"hang") != std::wstring::npos) { std::this_thread::sleep_for(std::chrono::seconds(30)); }

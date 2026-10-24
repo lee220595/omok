@@ -20,6 +20,8 @@ enum class LineKind { Empty, Diagnostic, Ok, About, Move, Error, Invalid };
 struct Line { LineKind kind; std::optional<state::Coordinate> position; };
 [[nodiscard]] Line parse_line(std::string_view text);
 [[nodiscard]] std::string board_command(const state::GameState& game, state::Participant actor);
+// BEGIN for the first black move, ordered BOARD for every later snapshot.
+[[nodiscard]] std::string move_command(const state::GameState& game, state::Participant actor);
 struct Limits { int turn_ms{30000}; int remaining_ms{180000}; int initialization_ms{10000}; };
 struct Request {
     match::Token token;
@@ -41,7 +43,7 @@ struct Result {
     unsigned long process_id{}, exit_code{};
     bool process_reaped{}, forced_cleanup{};
 };
-// Fresh process per request: START + ordered BOARD, then END and reap.
+// Fresh process per request: START + BEGIN/ordered BOARD, then END and reap.
 // Initial integration trades TT reuse for isolation and full-state restoration.
 [[nodiscard]] Result request_move(const Request& request, const std::function<bool()>& cancelled = {});
 [[nodiscard]] match::Response apply_result(match::Controller& controller, const Result& result);

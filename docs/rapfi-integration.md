@@ -40,7 +40,7 @@ BOARD
 DONE
 ```
 
-첫 통합은 **매 착수 요청마다 새 프로세스**를 실행한다. ABOUT → START15/OK → INFO rule4·메모리/1스레드/pondering0·ABOUT 설정 처리 확인 → 시간INFO → 전체BOARD/DONE → 좌표 → END → 종료 대기다. 새 프로세스라 이전 보드가 없으며 RESTART가 필요 없다. 중간 상태 누적 오류를 피하고 전체 배치를 정확하게 복원하지만 TT/가중치 캐시를 재사용하지 않아 시작 비용과 실력/성능 영향이 있다. 이를 영구 설계나 최적 대회 운영으로 확정하지 않는다. BEGIN/TURN 증분 송신·SWAP2BOARD·AI 대 AI는 이 구현의 후속이다. 기본 준비 렌주를 Swap2와 결합하지 않는다.
+첫 통합은 **매 착수 요청마다 새 프로세스**를 실행한다. ABOUT → START15/OK → INFO rule4·메모리/1스레드/pondering0·ABOUT 설정 처리 확인 → 시간INFO → BEGIN 또는 전체BOARD/DONE → 좌표 → END → 종료 대기다. 2026-10-24 첫 수부터 대국 추가로, `move_command`는 빈 보드의 흑 엔진에 BEGIN을 보내고 나머지는 실제 이력 순 BOARD를 보낸다. actor/색/차례 검사는 두 경로에 동일하다. [공식 프로토콜 BEGIN/BOARD](https://plastovicka.github.io/protocl2en.htm)에 따른다. 새 프로세스라 이전 보드가 없으며 RESTART가 필요 없다. 중간 상태 누적 오류를 피하지만 TT/가중치 캐시를 재사용하지 않아 시작 비용과 실력/성능 영향이 있다. TURN 증분·SWAP2BOARD·AI 대 AI는 후속이다. 기본 준비 렌주를 Swap2와 결합하지 않는다.
 
 CR/LF/CRLF·분할된 라인·빈 줄을 처리한다. MESSAGE/DEBUG만 진단으로 수용하며 stderr는 별도로 배수해 로그에 넣는다. 좌표는 정수 두 개/쉼표/줄 전체 형식으로 읽고 범위·점유·권한·금수는 match에서 확인한다. ERROR/UNKNOWN은 시작/지원 실패, 예상 밖 출력은 오류다. 16KiB 초과 라인·256KiB 초과 요청 로그는 출력 오류로 중단해 무제한 버퍼를 방지한다.
 

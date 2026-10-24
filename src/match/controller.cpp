@@ -14,11 +14,11 @@ state::Participant other(state::Participant p)
 Response Controller::start(const opening::Session& source)
 {
     const auto continuation = source.handoff().continuation;
-    if (source.mode() != opening::Mode::PreparedRenju
+    if ((source.mode() != opening::Mode::PreparedRenju && source.mode() != opening::Mode::DirectRenju)
         || (continuation != opening::Continuation::RenjuReady && continuation != opening::Continuation::Terminal)) {
         return {Error::NotReady};
     }
-    if (source.game().history().empty()) { return {Error::EmptyOpening}; }
+    if (source.mode() == opening::Mode::PreparedRenju && source.game().history().empty()) { return {Error::EmptyOpening}; }
     if (token_.session == std::numeric_limits<std::uint64_t>::max()) { return {Error::VersionExhausted}; }
     Controller candidate;
     candidate.opening_ = source;
@@ -32,6 +32,13 @@ Response Controller::start(const opening::Session& source)
     }
     *this = std::move(candidate);
     return {};
+}
+Response Controller::start_direct(state::Participant owner)
+{
+    opening::Session source;
+    const auto status = source.begin_direct_renju(owner);
+    if (!status.ok()) { return {Error::InvalidOpening, {}, status}; }
+    return start(source);
 }
 Response Controller::start_compact(std::string_view id, std::string_view text, state::Participant owner)
 {

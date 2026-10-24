@@ -8,14 +8,17 @@ Controller는 GUI/Windows 독립 C++20 값 객체다. 한 작성자가 관리하
 
 | API | 조건과 책임 |
 |---|---|
-| start(Session) | 비어 있지 않은 PreparedRenju의 RenjuReady 또는 Terminal만 수용. 원본 Session 전체(보드·이력·배정·차례·결과·오프닝 이벤트·데이터 ID)를 보존하고 진행용 GameState를 별도로 복사. 새 세션 ID·revision 0 |
+| start(Session) | 비어 있지 않은 PreparedRenju의 RenjuReady/Terminal 또는 DirectRenju의 RenjuReady를 수용. 원본 Session 전체(보드·이력·배정·차례·결과·오프닝 이벤트·데이터 ID)를 보존하고 진행용 GameState를 별도로 복사. 새 세션 ID·revision 0 |
+| start_direct(black_owner) | 흑 소유자를 명시한 빈 보드 로컬 렌주 대국. 처음부터/준비 배치 선택을 구분 |
 | start_compact(id,text,black_owner) | 기존 로더/복원 후 start. 실패하면 기존 Controller 전체 보존 |
 | place(Token,actor,position) | 정확한 세션/revision·Playing·유효한 A/B·다음 참가자·색 소유 확인 후 rules::evaluate. 실제 actor를 반드시 공급 |
 | resign(Token,actor) | 진행 중인 유효 A/B의 기권. 자기 차례일 필요는 없음. GUI 버튼은 현재 차례 참가자를 공급 |
-| restart(Token) | 원래 준비 Session으로 복원하고 새 세션 ID 발급. 변경 중인 compact 입력/선택은 적용하지 않음 |
+| restart(Token) | 원래 시작 Session으로 복원하고 새 세션 ID 발급. 변경 중인 compact 입력/선택은 적용하지 않음 |
 | close(Token) | 진행 중이면 Aborted/Closed로 종료. 이미 끝났으면 결과·종료 사유를 보존하고 Phase만 Closed로 변경 |
 
-NotStarted, OpeningInput, RuleContractRequired는 start/일반 착수를 허용하지 않는다. Terminal은 결과 표시만 가능하다. Swap2 완료를 PreparedRenju로 취급하지 않는다. 빈 보드는 제품 시작 배치로 허용하지 않는다.
+NotStarted, OpeningInput, RuleContractRequired는 start/일반 착수를 허용하지 않는다. Terminal은 결과 표시만 가능하다. Swap2 완료를 PreparedRenju로 취급하지 않는다. 2026-10-24 후속 요청으로 빈 보드는 별도 `DirectRenju` 시작 방식으로 허용한다. PreparedRenju의 빈 배치는 여전히 EmptyOpening으로 거부한다.
+
+`start_direct(black_owner)`는 opening의 begin_direct_renju로 만든 빈 Session 전체를 기존 start에 전달한다. 0수·흑 선공·시작 이벤트·세션 토큰을 새로 설정하고 기존 대국을 원자적으로 대체한다. 일반 착수/금수패/승리/200수/기권/엔진 오류 계약은 동일하며 첫 실제 돌부터 placed_by에 참가자를 기록한다. restart는 원래 DirectRenju Session으로 복원해0수·흑 차례로 돌아간다. 초기화 실패/오래된 입력은 전체 상태를 보존한다.
 
 모든 쓰기는 Controller 사본에서 수행한다. 구조 오류·잘못된 참가자·Token·준비 입력은 보드뿐 아니라 원본 오프닝·이력·차례·결과·이벤트·Token 전체를 보존한다. 후보 사본의 배치/결과 저장과 이벤트 기록이 모두 성공한 후 noexcept move assignment로 공개한다. 할당 예외는 전파되며 기존 객체를 보존한다. 할당 실패 주입은 미검증이다.
 

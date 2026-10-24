@@ -33,7 +33,8 @@ std::filesystem::path default_engine()
     }
     return {};
 }
-constexpr std::array<const wchar_t*, 5> preset_names{
+constexpr std::array<const wchar_t*, 6> preset_names{
+    L"처음부터 · 빈 보드 (렌주)",
     L"개발 확인용 · 기본 3수", L"개발 확인용 · 승리 확인 7수", L"개발 확인용 · 금수 확인 8수",
     L"개발 확인용 · 무승부 확인 199수", L"개발 확인용 · 종료 배치 9수"};
 int scaled(int value, UINT dpi) { return MulDiv(value, static_cast<int>(dpi), 96); }
@@ -62,7 +63,7 @@ const wchar_t* rule_reason(rules::Reason r)
 std::wstring response_error(const mt::Response& r)
 {
     if (r.error == mt::Error::InvalidPlacement) { return rule_reason(r.decision.reason); }
-    if (r.error == mt::Error::EmptyOpening) { return L"빈 배치는 시작 배치로 제공하지 않습니다."; }
+    if (r.error == mt::Error::EmptyOpening) { return L"빈 보드는 [처음부터 · 빈 보드]를 선택해 시작하세요."; }
     if (r.error == mt::Error::StaleInput) { return L"이전 대국 또는 이전 보드의 입력을 거부했습니다."; }
     if (r.error == mt::Error::NotPlaying) { return L"현재 대국은 착수를 받을 수 없습니다."; }
     if (r.error == mt::Error::InvalidOpening) {
@@ -117,12 +118,16 @@ struct View {
     void select_preset()
     {
         const auto index = static_cast<int>(SendMessageW(control(Preset), CB_GETCURSEL, 0, 0));
-        const auto data = mt::development_data(static_cast<mt::DevelopmentPosition>(std::clamp(index, 0, 4)));
-        SetWindowTextW(control(Compact), wide_ascii(data.compact).c_str());
+        if (index == 0) { SetWindowTextW(control(Compact), L""); }
+        else {
+            const auto data = mt::development_data(static_cast<mt::DevelopmentPosition>(std::clamp(index - 1, 0, 4)));
+            SetWindowTextW(control(Compact), wide_ascii(data.compact).c_str());
+        }
+        EnableWindow(control(Compact), index != 0);
     }
     void create()
     {
-        make_control(L"STATIC", L"15×15 렌주 · 개발 확인용 배치 | 사람 대 사람 / 사람 대 Rapfi · 대회 설정 전체 준수 미검증", 0, Banner);
+        make_control(L"STATIC", L"15×15 렌주 · 처음부터 / 준비 배치 | 사람 대 사람 / 사람 대 Rapfi", 0, Banner);
         make_control(L"COMBOBOX", L"", CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP, Preset);
         for (const auto name : preset_names) { SendMessageW(control(Preset), CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(name)); }
         SendMessageW(control(Preset), CB_SETCURSEL, 0, 0);
@@ -228,7 +233,11 @@ struct View {
               << L"초" << (ai_busy ? L" · 응답 대기" : L"");
         }
         s << L"\n" << engine_text;
-        s << L"\n\n흑 금수 클릭은 반칙패입니다.\n개발 확인용 배치 · 공식 아님\n사람 시계 미구현\n대회 설정 전체 준수 미검증\nID: " << wide_ascii(controller.source_opening().data_id());
+        s << L"\n\n흑 금수 클릭은 반칙패입니다.\n";
+        if (controller.source_opening().mode() == opening::Mode::DirectRenju) {
+            s << L"처음부터 · 흑 선공\n대회용 준비 오프닝과 다름\n";
+        } else if (controller.phase() != mt::Phase::NotStarted) { s << L"개발 확인용 배치 · 공식 아님\n"; }
+        s << L"사람 시계 미구현\n대회 설정 전체 준수 미검증\nID: " << wide_ascii(controller.source_opening().data_id());
         SetWindowTextW(control(Status), s.str().c_str());
         EnableWindow(control(Resign), controller.phase() == mt::Phase::Playing);
         EnableWindow(control(Restart), controller.phase() != mt::Phase::NotStarted);
@@ -298,7 +307,6 @@ struct View {
             notice(L"배치 가져오기 실패: ASCII compact 좌표만 입력하세요. 진행 중 대국은 보존됩니다."); return;
         }
         const auto index = static_cast<int>(SendMessageW(control(Preset), CB_GETCURSEL, 0, 0));
-        const auto preset = mt::development_data(static_cast<mt::DevelopmentPosition>(std::clamp(index, 0, 4)));
         const std::string compact(text.begin(), text.end());
         const auto owner = SendMessageW(control(Owner), CB_GETCURSEL, 0, 0) == 1 ? st::Participant::B : st::Participant::A;
         const auto mode = SendMessageW(control(Mode), CB_GETCURSEL, 0, 0);
@@ -311,13 +319,19 @@ struct View {
             const auto error = ai::validate_rapfi_installation(selected_engine);
             if (!error.empty()) { notice(L"Rapfi 시작 설정 오류: " + wide_ascii(error) + L" · 기존 대국 보존"); return; }
         }
-        const auto result = controller.start_compact(compact == preset.compact ? preset.id : "dev-user-input-v1", compact, owner);
+        mt::Response result;
+        if (index == 0) { result = controller.start_direct(owner); }
+        else {
+            const auto preset = mt::development_data(static_cast<mt::DevelopmentPosition>(std::clamp(index - 1, 0, 4)));
+            result = controller.start_compact(compact == preset.compact ? preset.id : "dev-user-input-v1", compact, owner);
+        }
         if (!result.ok()) { notice(response_error(result) + L" · 진행 중 대국은 보존됩니다."); return; }
         engine_worker.cancel(); ai_busy = false; ai_remaining_ms = 180000;
         ai_actor = mode == 1 ? std::optional{st::Participant::A} : mode == 2 ? std::optional{st::Participant::B} : std::nullopt;
         engine_path = selected_engine; engine_text = ai_actor ? L"사람 대 Rapfi" : L"외부 엔진 미사용";
         notice(controller.phase() == mt::Phase::Playing
-            ? L"개발 확인용 배치로 시작했습니다. 오른쪽 차례를 확인하세요. 클릭 즉시 착수·자동 교대됩니다."
+            ? (index == 0 ? L"빈 보드 대국을 시작했습니다. 흑부터 둡니다. 오른쪽 차례를 확인하고 교차점을 클릭하세요."
+                          : L"개발 확인용 배치로 시작했습니다. 오른쪽 차례를 확인하세요. 클릭 즉시 착수·자동 교대됩니다.")
             : L"이미 종료된 준비 배치입니다. 결과만 표시하며 착수는 받지 않습니다.");
         schedule_hints(); schedule_engine();
     }
@@ -341,7 +355,7 @@ struct View {
             const auto result = controller.restart(controller.token());
             if (!result.ok()) { notice(response_error(result)); return; }
             ai_remaining_ms = 180000;
-            notice(L"동일한 준비 배치·색 배정으로 재시작했습니다."); schedule_hints(); schedule_engine();
+            notice(L"같은 시작 방식·색 배정으로 재시작했습니다."); schedule_hints(); schedule_engine();
         } else if (id == Resign && notification == BN_CLICKED && controller.game().next_participant()) {
             const auto actor = ai_actor ? (*ai_actor == st::Participant::A ? st::Participant::B : st::Participant::A) : *controller.game().next_participant();
             const auto result = controller.resign(controller.token(), actor);

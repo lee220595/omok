@@ -37,7 +37,7 @@ struct Status {
 // Leaves output entirely unchanged on failure; does not adjudicate the game.
 [[nodiscard]] Status load_compact(std::string_view id, std::string_view text, PreparedData& output);
 
-enum class Mode { None, PreparedRenju, Swap2Protocol };
+enum class Mode { None, PreparedRenju, Swap2Protocol, DirectRenju };
 enum class Stage { Idle, FirstThree, SecondChoice, FinalChoice, Complete, Finished };
 // TakeWhite includes the next white placement (4th or 6th), per SWAP2BOARD.
 enum class Choice { TakeBlack, TakeWhite, OfferTwo };
@@ -78,6 +78,8 @@ public:
     // Explicit new-opening initialization. Success replaces the entire old session;
     // failure (including allocation exceptions) preserves it. Does not append games.
     [[nodiscard]] Status restore_prepared(const PreparedData& data, state::Participant black_owner);
+    // Local empty-board start with Renju board adjudication; not a tournament opening.
+    [[nodiscard]] Status begin_direct_renju(state::Participant black_owner);
     void begin_swap2(); // fresh structural protocol session, first proposer A
 
     // All responses are atomic batches. Sequence numbers/colors are explicit inputs.

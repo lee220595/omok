@@ -36,7 +36,13 @@
 
 `Placement::placed_by`는 이번에 `optional<Participant>`로 확장했다. **nullopt는 외부에서 준비된 돌**이며 실제 참가자 미상이나 색 소유자를 뜻하지 않는다. 준비 배치에 A/B를 임의로 채우지 않는다. 직접 둔 수·Swap2 배치는 실제 주체를 기록한다. 색 배정으로 과거 nullopt나 A/B가 바뀌지 않는다. 일반 착수 제어는 입력 참가자를 확인하고 실제 actor를 반드시 공급한다. 상태 모듈은 계속 구조 저장만 담당한다.
 
-## 별도 Swap2 상태 기계
+## 빈 보드에서 시작하는 별도 렌주 대국
+
+2026-10-24 후속 사용자 요청으로 `begin_direct_renju(black_owner)`를 추가했다. 기존 준비 배치 대신 `Mode::DirectRenju`, `Stage::Complete`, `RenjuReady`, ID `direct-renju-v1`, 빈 보드/이력·흑 차례·명시적 A/B 색 배정으로 초기화한다. Started/ColorsAssigned/Completed 이벤트를 기록하고 잘못된 참가자는 세션 전체를 보존하며 거부한다. 준비 돌이나 BatchPlaced 이벤트를 만들어내지 않는다.
+
+기존 렌주 보드 판정·200수 정책을 재사용하는 로컬 시작 방식이다. 첫 수 위치를 제한하는 정식 오프닝 절차·전문가 준비 배치·Swap2의 대체 대회 규칙으로 소개하지 않는다. PreparedRenju 로더의 빈 문자열 처리와 match의 빈 준비 배치 거부는 유지한다. GUI는 처음부터를 초기 선택으로 제공하되 준비 배치 선택도 유지한다.
+
+## 별도 Swap2 상태 기계 (기존 계약)
 
 `begin_swap2()`는 새 `Mode::Swap2Protocol` 세션으로 초기화한다. 아래 A는 최초 제안자, B는 두 번째 참가자다. 선택의 Black/White는 엔진 자신/상대 표기가 아니다. `Move` 번호·색은 명시적으로 검증하고 배치는 묶음 전체를 원자적으로 적용한다.
 

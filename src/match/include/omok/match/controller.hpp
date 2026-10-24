@@ -40,6 +40,7 @@ public:
     [[nodiscard]] rules::Reason rule_reason() const noexcept { return rule_reason_; }
     [[nodiscard]] std::span<const Event> events() const noexcept { return events_; }
     [[nodiscard]] Response start(const opening::Session& source);
+    [[nodiscard]] Response start_direct(state::Participant black_owner);
     [[nodiscard]] Response start_compact(std::string_view id, std::string_view text, state::Participant black_owner);
     [[nodiscard]] Response restart(Token expected);
     [[nodiscard]] Response place(Token expected, state::Participant actor, state::Coordinate position);

@@ -50,6 +50,33 @@ void normal(const std::filesystem::path& mock)
     CHECK(c.game().history().back().placed_by == state::Participant::B);
     const auto after = c; CHECK(ai::apply_result(c, r).error == match::Error::StaleInput && c == after);
 }
+void first_move(const std::filesystem::path& mock)
+{
+    for (const auto black : {state::Participant::A, state::Participant::B}) {
+        match::Controller c; CHECK(c.start_direct(black).ok());
+        const auto before = c;
+        CHECK(ai::move_command(c.game(), black) == "BEGIN\r\n");
+        const auto white = black == state::Participant::A ? state::Participant::B : state::Participant::A;
+        bool threw = false;
+        try { static_cast<void>(ai::move_command(c.game(), white)); } catch (const std::invalid_argument&) { threw = true; }
+        CHECK(threw && c == before);
+        const auto r = ai::request_move(request(c, mock, L"normal")); reaped(r);
+        CHECK(r.outcome == ai::Outcome::Move && c == before);
+        CHECK(r.transcript.find("> BEGIN\r\n") != std::string::npos && r.transcript.find("> BOARD") == std::string::npos);
+        CHECK(ai::apply_result(c, r).ok() && c.game().history().size() == 1);
+        CHECK(c.game().history().back().color == state::StoneColor::Black && c.game().history().back().placed_by == black);
+        CHECK(c.game().next_participant() == white);
+        CHECK(c.restart(c.token()).ok() && c.game().history().empty());
+        const auto restarted = c;
+        CHECK(ai::apply_result(c, r).error == match::Error::StaleInput && c == restarted);
+        CHECK(c.place(c.token(), black, {7, 7}).ok());
+        CHECK(ai::move_command(c.game(), white) == "BOARD\r\n7,7,2\r\nDONE\r\n");
+        const auto response = ai::request_move(request(c, mock, L"normal")); reaped(response);
+        CHECK(response.outcome == ai::Outcome::Move && ai::apply_result(c, response).ok());
+        CHECK(c.game().history().size() == 2 && c.game().history().back().color == state::StoneColor::White);
+        CHECK(c.game().next_participant() == black);
+    }
+}
 void errors(const std::filesystem::path& mock)
 {
     for (const auto mode : {L"bad", L"long", L"exit", L"crashafter", L"timeout", L"hang", L"startfail", L"bootexit"}) {
@@ -109,7 +136,8 @@ int wmain(int argc, wchar_t** argv)
         const std::wstring name = argv[1]; const std::filesystem::path mock = argv[2];
         if (name == L"protocol") protocol(); else if (name == L"normal") normal(mock);
         else if (name == L"errors") errors(mock); else if (name == L"stale") stale();
-        else if (name == L"worker") worker(mock); else return 2;
+        else if (name == L"worker") worker(mock);
+        else if (name == L"first_move") first_move(mock); else return 2;
         return 0;
     } catch (const std::exception& e) { std::cerr << e.what() << '\n'; return 1; }
 }

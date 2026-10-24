@@ -131,7 +131,7 @@ Result request_move(const Request& request, const std::function<bool()>& cancell
     Result result{}; result.token = request.token; result.actor = request.actor;
     const auto started = Clock::now(); Process process; bool initialized = false;
     try {
-        const auto board = board_command(request.game, request.actor);
+        const auto board = move_command(request.game, request.actor);
         if (cancelled && cancelled()) { throw Failure{Outcome::Cancelled, "superseded before start"}; }
         if (request.limits.turn_ms <= 0 || request.limits.remaining_ms <= 0 || request.limits.initialization_ms <= 0) {
             throw Failure{Outcome::Timeout, "no engine time remaining"};
@@ -169,7 +169,7 @@ Result request_move(const Request& request, const std::function<bool()>& cancell
         const auto available_match = request.limits.remaining_ms - std::chrono::duration_cast<std::chrono::milliseconds>(now - started).count();
         if (available_turn <= 0 || available_match <= 0) { throw Failure{Outcome::Timeout, "time exhausted during engine settings"}; }
         const auto budget = std::min(available_turn, available_match);
-        // NNUE files are loaded lazily on BOARD, outside Rapfi's own search timer.
+        // NNUE files are loaded lazily on BEGIN/BOARD, outside Rapfi's own search timer.
         // Keep the manager deadline strict and reserve setup/IPC headroom instead.
         const auto search_budget = std::max<decltype(budget)>(1, budget - std::min<decltype(budget)>(1000, budget / 2));
         send("INFO timeout_turn " + std::to_string(search_budget)
