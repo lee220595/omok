@@ -1,6 +1,6 @@
 # 로컬 대국·좌표·금수 작업자 계약
 
-2026-10-28 목표 변경 후에도 아래 구현 계약을 유지한다. 학습 환경은 [계획](learning-and-evaluation.md)에 따라 이 GUI 독립 Controller를 재사용하며 범용 합법 수 조회/무화면 CLI는 아직 없다. 기존 오류 결과와 EndReason을 보존하되 그 결과를 학습 보상으로 쓰는 정책은 별도 미정이다. GUI 완성은 해당 어댑터 개발의 선행 조건이 아니다.
+2026-10-28 목표 변경 후에도 아래 구현 계약을 유지한다. 계획된 학습 환경은 이 GUI 독립 Controller를 재사용하며 범용 합법 수 조회/무화면 CLI는 아직 없다. [무화면 환경 계약](headless-environment-contract.md)은 구조적 거부와 판정 적용, 정상 종료와 실행 중단을 구분한다. 기존 결과/EndReason은 보존하고 학습 자격은 [데이터 계약](data-contract.md)에 따른다. GUI 완성은 해당 어댑터 개발의 선행 조건이 아니다.
 
 2026-10-24. 보존한 구현 기준은 `5023aa2`(WIP)다. 공개 API는 `src/match/include/omok/match/`, 구현은 `src/match/`다. [상태](state-model.md)·[규칙](rules-spec.md)·[오프닝](opening-contract.md) 계약을 사용하며 판정을 복제하지 않는다. 실제 검증과 미검증은 [검증 기록](verification-match.md)을 따른다.
 
@@ -30,6 +30,8 @@ NotStarted, OpeningInput, RuleContractRequired는 start/일반 착수를 허용�
 - Legal: 실제 배치 기록과 명시적 색 교대, Placement 이벤트, revision 증가.
 - Win/Draw: 배치를 기록한 뒤 finish. 다음 색/참가자는 없다. 200수에는 준비 돌을 포함하며 기존 rules의 승리/금수 우선순위를 유지한다.
 - Forbidden: 상대 승리·Forbidden 종료. 금수 시도 돌을 보드/성공한 배치 이력에 추가하지 않고 Ended 이벤트에 actor·후보 좌표·판정 이유를 기록한다. 재시도 정책이 아니다. [RIF 9.2](https://www.renju.net/rifrules/)와 고정 Judge의 반칙패 처리에 따른다. 준비 데이터의 금수는 기존 opening 계약대로 가져오기 오류다.
+
+`Response::ok()`는 요청 처리 성공이지 합법 수라는 뜻이 아니다. Forbidden 적용도 Error::None이므로 판정과 종료 사유를 함께 읽는다. ‘실패 요청 전체 보존’은 위 Invalid/구조적 거부에 해당하며, 금수패로 바뀐 결과·이벤트·revision을 되돌린다는 계약이 아니다. 학습의 합법 마스크는 금수를 제외하지만 실제 대국에서 제출된 금수의 반칙패 정책을 바꾸지 않는다.
 
 이벤트는 Started/Restarted/Placement/Ended이며 해당 Token·actor·좌표·판정·종료 사유를 보존한다. 현재 세션만 보관하고 재시작 시 초기화한다. source_opening의 원본 이벤트/ID는 진행 중 바뀌지 않는다. 이벤트만으로 기보 전체를 저장할 수 없으며 파일/복기는 후속이다. session/revision 소진은 VersionExhausted로 거부하며 재사용하지 않는다.
 

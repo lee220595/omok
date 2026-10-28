@@ -84,3 +84,5 @@ match는 인계 스냅샷을 바탕으로 자체 가변 상태를 소유하고 �
 새 초기화 함수는 이전 세션을 성공 시 교체한다. 단계별 응답은 성공 시에만 새 사본을 공개하며 실패 시 전체 보존한다. 최종 move assignment의 noexcept를 static_assert로 확인한다. 동적 메모리 할당 예외는 호출자에게 전달하며 원 세션은 유지하지만 할당 실패 주입 검증은 수행하지 않았다.
 
 2026-10-24 후속: match가 원본 Session 전체와 별도 진행 상태를 보존한다. GUI에 자체 작성한 개발용 배치 다섯 가지를 제공하며 공식 데이터로 소개하지 않는다. 외부 데이터/테스트 fixture의 install 제외는 유지한다. [match 계약](match-contract.md)·[검증](verification-match.md)을 따른다. Swap2의 RuleContractRequired 차단은 그대로다.
+
+학습 환경의 초기화/복원은 [환경 계약](headless-environment-contract.md)에 따라 이 Session과 다음 입력 주체를 보존한다. 준비 배치·오프닝 제안·색 선택을 일반 착수 정답으로 전환하는 조건은 [데이터 계약](data-contract.md)에 둔다. [모델 v1](model-contract.md)은 완료된 일반 렌주만 지원하며 Swap2 제안/선택 단계나 RuleContractRequired를225개 행동으로 우회하지 않는다.
