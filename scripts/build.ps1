@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$AliasParent = $env:TEMP)
+param([string]$AliasParent = $env:TEMP, [switch]$Headless)
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -45,7 +45,8 @@ foreach ($metadataName in @('.ninja_deps', '.ninja_log')) {
         Remove-Item -LiteralPath $metadataPath
     }
 }
-& cmake --fresh -S $sourceAlias -B $buildDir -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
+$headlessOption = if ($Headless) { 'ON' } else { 'OFF' }
+& cmake --fresh -S $sourceAlias -B $buildDir -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ "-DOMOK_BUILD_HEADLESS=$headlessOption"
 if ($LASTEXITCODE -ne 0) { throw "CMake configure failed: $LASTEXITCODE" }
 & cmake --build $buildDir
 if ($LASTEXITCODE -ne 0) { throw "Build failed: $LASTEXITCODE" }

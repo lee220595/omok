@@ -1,6 +1,6 @@
 # GUI 없는 대국 환경·기록/재생 계약
 
-2026-10-28 설계. **범용 환경/CLI·영구 기록/재생은 미구현**이다. 아래는 논리 요청/반환 의미이며 실행 가능한 새 API/명령이 아니다. 실제 상태/판정/권한은 [state](state-model.md)·[rules](rules-spec.md)·[opening](opening-contract.md)·[match](match-contract.md)를 재사용한다.
+2026-10-28 설계. **DirectRenju/PreparedRenju의 Python 환경·순차 CLI·JSON trace 저장/재생을 구현했다**([실제 API와 검증](python-headless.md)). 아래는 논리 요청/반환 의미이며 실행 가능한 새 API/명령이 아니다. 실제 상태/판정/권한은 [state](state-model.md)·[rules](rules-spec.md)·[opening](opening-contract.md)·[match](match-contract.md)를 재사용한다.
 
 ## 경계와 공통 응답
 

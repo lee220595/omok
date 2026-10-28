@@ -1,81 +1,44 @@
 # 오목 프로젝트 개발 인계
 
-갱신일: 2026-10-28 계약 보완. **이번 승인 범위는 문서·계약·개발 계획 정리**다. 코드/기능 구현·학습·리팩터링·의존성 설치·GUI 조작은 하지 않았다. 다음 구현 제안은 자동 착수하지 않았다.
+갱신: 2026-10-28. 승인 범위는 **기존 C++ 기반의 Python 무화면 환경·순차 자동 대국·기록/재생·재개·계측 구현**이다. 모델/지도학습/추론/MCTS/RL/제출 수신기/GUI 개선은 이번 범위에 없고 시작하지 않았다. 이전 인계는 [보존본](handoff-before-python-2026-10-28.md)에 있다.
 
-## 목표와 문서 안내
+## 현재 코드와 변경
 
-최종 목표는 지도학습과 강화학습으로 강력한 자체 오목 AI를 개발해 Gomocup에서 실행·대국할 독립 엔진으로 완성하는 것이다. 정책·가치 지도학습 → 저장 모델 합법 대국/기본 응답 → MCTS → 자기 대국 강화학습을 기본 경로로 유지한다. Rapfi는 중간/최종 평가 전용 고정 벤치마크다. 현재 학습 상대·교사·정답 생성기로 쓰지 않는다.
+- src/headless/bridge.cpp와 CMake: 선택적 omok_headless DLL, ABI1, Controller 생성/복사/정리·direct/prepared 초기화·스냅샷/마스크/착수/닫기. 기존 state/rules/opening/match 판정과 금수패·200수 우선순위를 재사용했다. 기존 코어/GUI/외부 엔진 소스는 변경하지 않았다.
+- python/omok_env: ctypes 환경·0..224행동·4채널 float32 관측·고유 game ID/Token·독립 복제, JSON trace 안전 저장/별도 환경 재생, ordered/random·시드·참가자 흑백 교대·완료 단위 재개·오류/중단 분리, benchmark. Python 판정 복제·모델·보상 업데이트 없음.
+- python/test_headless.py: 소형 자체 fixture와 10개 테스트. CMake 옵션 ON일 때 Python 발견 시 headless.python CTest 등록. 기본 옵션 OFF는 기존 빌드를 유지한다.
+- scripts/build.ps1에 -Headless 추가. .gitignore에 runs/Python 캐시 제외. README·계약·계획·기술 결정·배포 고지와 [실제 명령/API/기록/측정](python-headless.md) 갱신.
 
-지속 지침은 [AGENTS](../AGENTS.md), 단계/선행 조건/완료 기준/제외 범위는 [개발 계획](development-plan.md), 공통 경계 안내는 [학습·평가](learning-and-evaluation.md), 선택지/권장안/결정 시점은 [결정 목록](requirements-pending.md)에 있다. 상세 정의는 아래 문서에 단일 관리한다.
+## 실제 검증과 실행
 
-| 계약 | 이번에 명확히 한 내용 — 구현과 구분 |
-|---|---|
-| [모델](model-contract.md) | 같은 SL/RL 모델·4채널 float32 관측/225행동/마스크·현재 착수자 가치·D4/MCTS 부호·추론 저장/재개/단계 전환·호환성 검사 |
-| [무화면 환경](headless-environment-contract.md) | 논리 입력/반환·초기화/복원/관측/착수/결과·거부와 금수 판정 적용·정상 종료/실행 중단·보상/결과 전파·최소 trace/재생 |
-| [데이터](data-contract.md) | 원본/정규화/샘플 계보·정책/가치별 자격·초기 board-outcome-v1·오프닝/색/종료 해석·분할/증강/국면 중복 |
-| [평가](evaluation-contract.md) | 개발 반복/최종 미사용 평가·상대 역할·흑백 쌍·WDL/점수/오류·95% 그룹 bootstrap·탐색량/시간·자원/비결정성 |
-
-GUI 전체·클린 GUI 배포·리그와 무관한 Swap2의 미완료는 일반 렌주 학습 개발 전체를 차단하지 않는다. 기존15×15 렌주/준비/빈 보드 시작·별도 Swap2 요구와 미검증 이력은 보존했다. AGENTS에서 특정 작업의 ‘이번 문서만’ 제한은 제거하고 최신 요청/승인 범위 확인이라는 지속 원칙으로 바꿨다.
-
-## Git·구현 기준과 보존
-
-- 이번 문서 시작 기준: `dee81865d6aa923f8e7789d8633dcf65e9c780e5`. 실제 구현 기준: `fda491fcd17ac83a6203c2d9741cde63a65985da`(빈 보드/Rapfi 후속). 이후 목표/계약 수정은 문서 변경이다.
-- 브랜치 `codex/rapfi-integration`, origin `https://github.com/lee220595/omok.git`. 시작 당시 추적/미추적 변경 없음. fetch 후 원격 작업 브랜치와 차이0을 확인했다. 중단 후 이어서 확인한 변경은 이 문서 작업의 파일뿐이었다.
-- main/origin/main 기준은 `a15a871491b74c1685d1dad072c9edb392abc6f7`. 미통합 GUI/AI 이력을 보존해 현재 작업 브랜치에서 이어서 정리했으며 main 통합은 수행하지 않는다.
-- 과거 승인/검증은 [history](history/handoff-2026-10-24.md)와 개별 verification 문서·e803893/dee8186 이력에 남긴다. 과거 기록을 덮어쓰거나 미검증을 완료로 바꾸지 않았다.
-- 관련 Markdown만 한 작업 단위로 커밋·일반 푸시한다. 최종 커밋 ID/푸시 결과는 완료 보고와 Git에서 확인한다. 코드/테스트/빌드 설정·바이너리/가중치·build/dist는 커밋 대상이 아니다. 강제 푸시/삭제/초기화/브랜치 전환은 하지 않는다.
-
-## 실제 코드 확인과 남은 구현
-
-| 영역 | 실제 구현 | 미구현/미검증 |
-|---|---|---|
-| state/rules | Windows/GUI 독립 C++20 저장·렌주 판정. 상태 점유 수=성공 이력 수, 준비 돌 포함 | evaluate의200수는 고정. 프로필 분리·모든 배치/최종 대상 심판 적합성 미완료 |
-| opening/match | 순서 보존 준비 복원·DirectRenju·색/차례·권한·사본 적용·결과/이벤트/Token | 공식 준비 데이터/사용 조건 미확보. Swap2 완료 후 RuleContractRequired 차단 |
-| 외부 엔진/GUI | Rapfi 프로세스/BEGIN/BOARD 송신·응답 검증·시간/자원/취소, 로컬 사람 대 사람/대Rapfi | 자체 엔진 수신 아님. 긴 엔진 완결 대국·자원 경계·전체 GUI/DPI/클린OS 미검증 |
-| 기록/환경/학습/제출 | 메모리 이벤트·한정 probe, records는 INTERFACE 예약 | 범용 환경/합법 수 열거·trace 파일/재생·데이터 파이프라인·모델/학습/MCTS·자체 수신/평가 실행기 미구현 |
-
-실제 Controller::place는 Invalid/Token/권한 오류이면 전체 보존한다. Forbidden이면 Response.ok()는 참이고 상대 승리·종료 이벤트·revision을 기록한다. **시도 돌/성공 이력은 추가하지 않지만 전체 상태는 변경된다.** 이번에는 이를 문서로 명확히 했고 코드를 바꾸지 않았다. 준비 데이터 속 금수는 복원 오류로 전체 보존한다. 엔진 오류의 명시적 engine_failure 경로도 일반 요청 거부와 다르다.
-
-종료 후 state의 다음 색/참가자는 없으므로 가치 관점은 착수 전 저장된 참가자/색으로 계산한다. 준비 배치도200수에 포함한다. 정확한 흑5목 우선·200번째 승리/금수 우선은 기존 rules를 유지한다. 시간이 입력되지 않는 보드 모델에 시간패를 자동 정답으로 넣지 않는다.
-
-루트 CMake는 현재 Windows x64 전용이고 GUI 타깃/Win32 외부 통신이 있다. 코어의 독립성을 전체 학습 환경의 이식성 검증으로 소개하지 않는다. 현재 GUI의 한 수/누적 시간·자원 고정값을 런타임 프로필 분리가 구현된 것처럼 쓰지 않는다.
-
-## 학습 연결과 미정 항목
-
-SL→RL은 같은 정책·가치 가중치를 재사용하되 optimizer/scheduler/scaler와 RL 진행/경험 저장소를 기본 초기화한다. 같은 단계 재개는 해당 학습 상태/RNG/데이터 위치 등을 복원한다. 추론 모델 파일을 완전한 재개 체크포인트로 오인하지 않고 구조/입출력/규칙/코드/데이터/해시 호환성 오류는 명시적으로 거부한다. 이 저장/로딩 기능은 아직 없다.
-
-v1의4채널/행동/가치 의미는 현재 일반 렌주200수 지원 범위의 설계 결정이다. 모델 크기/블록 수·학습 도구/장비·추론 런타임/오차·저장 인코딩은 미정이다. 진행 중 합법 수0은 근거 없이 draw/패배를 만들지 않고 blocked로 격리하도록 설계했으며 규칙상 최종 결론은 미정이다. 기권/금수/합의 등의 가치 라벨 추가·오류 prefix 사용·유사 국면/공통 오프닝 기준·경험 재사용/손실 설정·평가 표본/그룹/재표집 세부·실력 목표·목표 연도/리그/서버·Swap2 규칙 바인딩/매니저 검증·자료/모델 공개 권리도 결정 목록에 시점과 이유를 남겼다.
-
-데이터 기본 board-outcome-v1은 보드 승패/정상 프로필 무승부만 가치 정답으로 허용한다. 기권 등 확인된 결과 자체는 보존하되 가치 사용을 보류하고, 검증된 일반 수의 정책 자격과 구분한다. 중단/오류·결과 불명을 draw0으로 채우지 않는다. Rapfi 자료는 평가에만 둔다.
-
-## 다음 구현 작업 하나
-
-**GUI 없는 환경 어댑터와 최소 기록/재생 왕복**을 제안한다. [단일 작업 명세](development-plan.md)에 목적·범위·선행 조건·산출물·완료 기준·제외를 기록했다. 이번에는 시작하지 않았다.
-
-기존 state/rules/opening/match를 재사용해 현재 프로필의 초기화/준비 복원→관측/마스크→착수/교대→결과/중단→최소 trace 저장/재생/재초기화를 창 없이 검증한다. 구조 거부 보존/금수 판정 적용·흑5목/200수·참가자/색/관점·인덱스/D4·Token 격리·재생 불일치 롤백이 완료 기준이다. 실제 wire/trace 인코딩은 착수 시 선택하고 구현한 CLI/CTest/기본 빌드를 실행해 기록한다. 학습 프레임워크·GPU·Rapfi·공식 데이터는 선행 조건이 아니다. 모델/학습/MCTS·범용 병렬 평가·대규모 데이터 취득·GUI 개선·Swap2 규칙 연결은 제외한다.
-
-## 검증 기록과 재현 범위
-
-이번에는 Git 상태/로그/원격·fetch/차이 확인, 실제 헤더/구현/계약 읽기와 문서 검사를 수행했다. 문서 검증 결과는 아래에 기록한다. 이는 C++ 자동 테스트/모델 실행/통계 실행기의 검증이 아니다.
-
-- 상대 링크·상충 문구·용어/오타·문서 수식 검사와 git diff --check를 수행했다. 결과는 아래에 기록한다.
-- 변경 파일은 Markdown 한정이며 역사/상세 verification·코드/테스트/CMake/스크립트·외부 설치/배포 파일은 변경하지 않는다.
-- 마지막 실제 빌드/install/CTest89개 통과(2026-10-24)와 실제 Rapfi5경우/GUI 일부 확인은 [당시 기록](verification-direct-start.md)을 따른다. [규칙](verification-rules.md)·[오프닝](verification-opening.md)·[GUI](verification-playability.md)·[Rapfi](verification-rapfi.md)의 제약/실패도 보존했다. 이번에 재실행한 결과가 아니다.
-
-기존 실행 재현 명령은 README의 ASCII 경로 우회를 유지한다. 아래는 과거 검증 경로이며 이번에는 실행하지 않았다.
+검증 OS Windows11 x64 10.0.26200, Python3.13.7 x64, GCC13.3.0 MinGW-w64 POSIX SEH, CMake3.29.3, Ninja1.12.1. 새 의존성 설치 없음. 기본 빌드/install 성공 후 선택 DLL 빌드/install도 성공했다. ASCII 별칭은 C:/Users/leesn/AppData/Local/Temp/omok-headless-build/omok-build-71f60837f90e다.
 
 ```powershell
-$aliasParent = Join-Path $env:TEMP 'omok-rules-build'
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -AliasParent $aliasParent
-ctest --test-dir .\build\native-release --output-on-failure --no-tests=error
-.\dist\omok\omok.exe
-.\build\native-release\bin\omok_engine_probe.exe .\external\rapfi\Rapfi-engine\pbrain-rapfi-windows-avx2.exe 1000
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -AliasParent C:/Users/leesn/AppData/Local/Temp/omok-headless-build -Headless
+$env:PYTHONPATH='python'
+python -m unittest discover -s python -p test_headless.py -v
+ctest --test-dir build/native-release --output-on-failure --no-tests=error
+python -m omok_env.runner runs/smoke --games 2 --seed 17
+python -c "from omok_env.records import replay; print(replay('runs/smoke/game-000000.json')['result'])"
+python -m omok_env.benchmark runs/benchmark-final --samples 30 --games 4
 ```
 
-코드/빌드 설정 변경이 없어 빌드·CTest·GUI·실제 엔진 재실행을 생략했다. 공식 공고/외부 링크/라이선스 최신 유효성도 새로 확인하지 않았다. 미구현 환경·학습·평가·최종 대회 적합성을 완료로 표시하지 않는다.
+- 기존 CTest89개 통과(11.59초). 선택 DLL/Python 등록 후 최종 전체90개 통과(14.02초, Python 내부10개 검사). Python 별도10개도 통과(3.772초).
+- 좌표225왕복, 4개 환경의 마스크/실제 판정900개 비교, 정확한5목 우선·금수 시도 반칙패/보드 불변·200수 무승부·종료 후 입력, 복원/관점·복제 독립·잘못된 요청/오래된 Token 보존·100회 생성/정리 확인. 기존 rules 회귀가 재귀 예외·대칭·200번째 승리/금수 우선을 검증한다.
+- Python 시작→완료 두 판(seed17), 총19수/2승리·독립 재생 일치. 테스트에서 동일 시드 두 실행의 JSON 일치, 완료 재개0수/중복 집계 없음, 설정 변경 재개 거부, cap·Ctrl+C·주입 실행 오류/시작 실패 분리와 손상 파일 거부 확인. native 커밋 직후 취소를 주입해 마지막 수 보존도 확인.
+- 최종 코드 소표본 처리량: Intel Core Ultra5 226V, 논리CPU8, 단일 프로세스 순차/affinity 고정 없음. 30회 평균 ms: 초기화0.00848, 상태0.01421, 관측0.05751, 준비3수 mask0.06353/위협8수0.16688, step0.02711, clone+dispose0.00556. 무작위4판/531수/4승리 저장·재생 포함1.01438초(523.47수/초·3.943판/초). 원본 결과 runs/benchmark-final/benchmark.json은 생성물로 Git 제외. 소수 표본이며 장시간/밀집 최악 성능 보증 아님.
+- 초기 sandbox 임시 디렉터리에서 Python tempfile 생성이 반복 대기해 중단하고 테스트 임시 경로를 writable build/python-tests로 수정했다. 기존 충돌 alias는 삭제하지 않고 새 부모 경로로 빌드했다. Ninja의 한글 의존성 캐시는 기존 build.ps1 방식으로 재생성했다. 최종 검사에는 이 문제 없음.
 
-### 최종 문서 검사 결과
+## 미검증·제약·다음 작업 하나
 
-- 저장소 Markdown35개의 상대 링크304개 검사, 누락0. 기존 코드/계약과 새 설계의 경계·금수/거부·SL/RL 재개/초기화·보상/라벨·Rapfi 역할과 용어를 대조했다.
-- 문서 수식의225개 행동 왕복, D4의1800개 좌표 왕복/8개 전단사, 합법 원소 softmax 예시, 남은 수순 비율과 점수 예시를 일회성 JavaScript로 확인했다. C++ 인코더/추론/MCTS 구현이나 통계 실행기를 검증한 것은 아니다. 별도 코드/테스트 파일은 만들지 않았다.
-- git diff --check 통과. 변경15개 모두 Markdown, 코드/테스트/빌드 설정 변경0, history/상세 verification 변경0. 한자/가나 오타 검색과 미구현/계획/과거 기록의 표현 대조를 마쳤다.
+Linux/Colab/MSVC/다른 Python·클린 Windows·장시간/대량/병렬·dense 최악 재귀·실제 심판 새 실행·실제 Rapfi/GUI 수동 실행은 검증하지 않았다. 과거 GUI/외부 엔진 미검증은 기존 verification 문서를 보존한다. 현재 프로필은 기존 고정200수이며 대회 시계/자원 프로필 분리는 아직 없다. 공식 준비 데이터/권리는 미확보, 자체 fixture는 공식 데이터가 아니다. 합법 수0은 blocked/aborted로 격리하고 draw/패스를 추가하지 않는다.
+
+재개는 동일 config/commit/소스·DLL해시에서 완료 대국을 검증 후 건너뛰며 미완료는 attempt 보존 후 처음부터 재실행한다. 동시 output 공유는 미지원이다. 강제 종료/전원 손실에서 진행 중 대국은 유실될 수 있다. 정상 완료 파일은 남으며 임시/손상 파일을 정상 집계하지 않는다. 샘플 정제/권리·라벨·분할은 아직 P2 후속이다. trace 저장은 강함/학습 완료/대회 적합성 증명이 아니다.
+
+**다음 작업 하나: 이 환경 위에 작은 정책·가치 모델의 지도학습과 추론 연결.** 데이터 권리·라벨/분할·중복과 모델 계약/도구 선택을 먼저 확인한다. 이번 요청으로 자동 착수하지 않는다.
+
+## Git·기준과 승인/중단 지점
+
+시작 d7b3142, codex/learned-policy-foundation, 추적/미추적 변경 없음. fetch 성공 후 origin/main보다 기존 이력10커밋 앞/뒤0을 확인했다. main으로 되돌려 미통합 구현을 잃지 않도록 이 이력에서 codex/python-headless-games를 만들었다. 기존 브랜치·이력·원격은 보존하며 main 통합/강제 푸시/브랜치 삭제 없음.
+
+관련 소스·작은 테스트·문서만 커밋하고 같은 브랜치에 일반 푸시한다. build/dist/runs/외부 바이너리·가중치/임시물은 제외한다. 최종 커밋 ID와 실제 푸시 여부는 최종 보고에 기록하며 이를 문서에 넣기 위한 반복 커밋은 하지 않는다. 문서 상대 링크309개 누락0·git diff --check 통과를 확인했다. 현재 승인 범위의 완료/검증/문서·Git 저장 후 중단하며 다음 모델 작업은 착수하지 않는다.

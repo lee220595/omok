@@ -1,0 +1,15 @@
+add_library(omok_headless SHARED bridge.cpp)
+target_link_libraries(omok_headless PRIVATE omok_match)
+omok_compiler_options(omok_headless)
+if(MINGW)
+    target_link_options(omok_headless PRIVATE -static-libgcc -static-libstdc++ -static)
+endif()
+if(BUILD_TESTING)
+    find_package(Python3 QUIET COMPONENTS Interpreter)
+    if(Python3_Interpreter_FOUND)
+        add_test(NAME headless.python COMMAND "${Python3_EXECUTABLE}" -m unittest discover
+            -s "${PROJECT_SOURCE_DIR}/python" -p test_headless.py -v)
+        set_tests_properties(headless.python PROPERTIES TIMEOUT 180 LABELS headless
+            ENVIRONMENT "PYTHONPATH=${PROJECT_SOURCE_DIR}/python;OMOK_HEADLESS_LIBRARY=$<TARGET_FILE:omok_headless>")
+    endif()
+endif()

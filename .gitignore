@@ -6,6 +6,9 @@ dist/
 # User-installed external Rapfi executables, models and local configuration
 /external/rapfi/
 /out/
+/runs/
+__pycache__/
+*.pyc
 
 # CMake / Ninja generated state and local presets
 CMakeFiles/

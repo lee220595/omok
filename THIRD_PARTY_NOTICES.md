@@ -1,5 +1,7 @@
 # 배포 구성과 외부 라이선스
 
+선택적 Python 무화면 연결은 사용자 설치 Python의 ctypes/array/json 등 표준 라이브러리만 사용한다. Python·제3자 Python 패키지를 GUI ZIP에 동봉하지 않는다. 선택 DLL의 GCC/MinGW 정적 런타임에는 아래 기존 고지를 동일하게 적용한다. 별도 외부 JSON/바인딩 라이브러리는 추가하지 않았다.
+
 현재 GUI는 자체 작성 C++ 코드와 Windows 기본 User32/GDI32 API를 사용한다. Qt·wxWidgets, 매니저·AI 코드·모델·바이너리는 포함하지 않는다. Windows의 DLL은 OS 제공 구성요소이며 이 패키지에 복사·재배포하지 않는다. Windows 사용 조건은 대상 OS에 따른다.
 
 Rapfi는 사용자가 별도 설치한 실행 파일을 표준 입출력으로 호출한다. `external/rapfi/`의 실행 파일·config·가중치·AUTHORS를 제품/소스 저장소에 동봉하지 않는다. [제작자 고정 README](https://github.com/dotb1ue/rapfi/blob/1be1551ced57e38d53ed58f6d74bf6f8b4bdc230/Readme.md)는 GPLv3와 정확한 바이너리의 소스 제공 조건을 안내한다. 가중치별 재배포 조건·다운로드 파일과 정확한 소스 대응은 이번에 확정하지 않았으며 재배포 허가로 추정하지 않는다. 현재는 사용자 로컬 설치 실행만 검증했다. 상세 해시·범위는 [Rapfi 기록](docs/verification-rapfi.md)을 따른다.
