@@ -1,5 +1,7 @@
 # 로컬 대국·좌표·금수 작업자 계약
 
+2026-10-28 목표 변경 후에도 아래 구현 계약을 유지한다. 학습 환경은 [계획](learning-and-evaluation.md)에 따라 이 GUI 독립 Controller를 재사용하며 범용 합법 수 조회/무화면 CLI는 아직 없다. 기존 오류 결과와 EndReason을 보존하되 그 결과를 학습 보상으로 쓰는 정책은 별도 미정이다. GUI 완성은 해당 어댑터 개발의 선행 조건이 아니다.
+
 2026-10-24. 보존한 구현 기준은 `5023aa2`(WIP)다. 공개 API는 `src/match/include/omok/match/`, 구현은 `src/match/`다. [상태](state-model.md)·[규칙](rules-spec.md)·[오프닝](opening-contract.md) 계약을 사용하며 판정을 복제하지 않는다. 실제 검증과 미검증은 [검증 기록](verification-match.md)을 따른다.
 
 ## 대국 제어와 원자성

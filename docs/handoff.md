@@ -1,88 +1,52 @@
 # 오목 프로젝트 개발 인계
 
-갱신일: 2026-10-24. **빈 보드 첫 수부터의 로컬/사람 대 Rapfi 대국을 추가했다. 전체 GUI/대회/AI 단계 완료와 구분한다.**
+갱신일: 2026-10-28. 이번 작업은 **자체 학습 AI·Gomocup 독립 엔진 목표에 맞춘 문서/방향 정리**만 수행했다. 모델 학습·새 기능·코드 재구성·의존성 설치/추가·제출은 시작하지 않았다.
 
-## 최신 작업 — 처음부터 대국
+## 목표와 현재 우선순위
 
-- 기준 `50a3b9060ece787867cdbb1d897e985f11d99324`는 원격 작업 브랜치에 저장돼 있었다. 시작 변경0, fetch 후 일치. 미병합 GUI/AI 이력을 보존한 `codex/rapfi-integration`에서 계속하며 main `a15a871`은 그대로다. 최종 커밋 ID/푸시는 완료 보고와 Git에서 확인한다.
-- 사용자가 개발용 준비 배치 외에 첫 수부터의 대국과 Rapfi 대국을 요청했다. 과거 빈 보드 제외를 이 범위에서 갱신했다. GUI 초기 선택 **처음부터 · 빈 보드 (렌주)** → 대국 시작 → 흑 선공이다. 대국 방식은 로컬 사람 대 사람/사람A·RapfiB/RapfiA·사람B. 흑A/백B 또는 반대 배정을 선택할 수 있다.
-- opening `DirectRenju`/`begin_direct_renju`와 match `start_direct`로 빈 보드·이력0·흑 차례·색/이벤트/원본Session을 설정한다. 재시작은0수·흑 차례로 복원한다. 기존 사본 적용/Token/렌주 판정·200수/금수패·AI 시간/오류 정책을 재사용한다. PreparedRenju 빈 compact 거부와 별도 Swap2 차단은 유지한다.
-- 빈 보드 엔진 첫 수는 공식 BEGIN, 이후에는 수순 보존 BOARD를 보낸다. 별도 프로세스·CPU/메모리/시간·own/opponent 변환·오래된 응답 차단 계약을 유지한다. 자체AI를 구현하지 않았다.
-- 실제 명령은 아래 build/CTest/probe 경로 그대로다. probe는 기존3경우+빈 보드 흑/사람 첫 수 뒤 백의5경우로 확장했다. 모두 합법 응답/match 적용·reaped1/forced0/exit0. 새 흑H8 540.914ms·백G7 900.561ms. GUI에서 사람흑H8→Rapfi백G7, Rapfi흑H8→사람백I8→Rapfi흑I7과 로컬0→1→2수·재시작0수/기권을 실제 확인했다.
-- 재시작 안내 수정 후 **최종 빌드/링크/install 성공, CTest89/89(8.29초)**. 새3개는 opening.direct_renju/match.direct_renju/ai.first_move. build/dist 해시 `8B725049A9888BC9307DF059E2748EE6224E7FE99F484DD9FCB51652F3AF0DF8` 일치, 배포README도 소스와 일치. GUI DLL은 기존 Windows 기본4개뿐이다.
-- 최종 install도 별도 실행해 빈 보드 시작 → 실제 흑H8 → 재시작0수/흑 차례와 새 안내를 확인하고 정상 닫았다. 실제 Rapfi의 양쪽 선후공 검증은 이 마지막 안내 한 줄 변경 전 실행 파일의 관찰이다.
-- 계약·README·배포 안내·AGENTS 승인/테스트 수를 갱신했다. [최신 처음부터 검증](verification-direct-start.md)에 상세 입력·출력·로그·미검증을 기록했다. 빈 보드 모드는 기존 렌주 보드 판정을 쓰는 로컬 시작이며, 공식 준비 오프닝/정식 오프닝 절차를 대체하는 대회 모드로 소개하지 않는다.
-- 긴 Rapfi 완결 대국·모든 첫 수/GUI 배정 조합·시간/자원 경계·최악 재귀/장시간 누수·다중DPI·클린OS는 미검증이다. 기존 단계 전체 미완료 범위를 유지한다. 다음은 긴 대국과 남은 오류/자원/GUI 검증이다. AI 대 AI·Swap2 연결·사람 시계·기보/복기·자체AI·외부바이너리 배포는 확대하지 않았다.
+최종 목표는 지도학습과 강화학습을 기반으로 강력한 자체 오목 AI를 개발하고 Gomocup에서 실행·대국할 독립 엔진으로 완성하는 것이다. 주 산출물은 자체 모델·추론/탐색 엔진·소스/실행 파일·재현 가능한 검증 자료다. 규칙 정확성 → 자동 대국/데이터 → 지도학습 → 탐색 결합 → 자기 대국 강화학습 → 평가/제출 검증 순이며 프로토콜 최소 수신 검증은 초기에 병행/회귀한다.
 
-## 이전 추가 작업 — 착수·교대 실제 재확인
+GUI는 관찰/분석 보조 도구다. GUI 편의 기능 전체·클린 Windows GUI 배포·외부 연동 전체 완료를 학습 착수의 선행 조건으로 두지 않는다. 기존 미검증을 완료 처리하지도 않는다. [AGENTS](../AGENTS.md)·[개발 계획](development-plan.md)·[학습/데이터/평가 원칙](learning-and-evaluation.md)·[승인/미정 사항](requirements-pending.md)을 우선 읽는다.
 
-- 이번 기준 커밋은 `cdf72b6cf8896a9282777bf5badf3ac9c61b1747`(Rapfi 초기 구현, 원격 작업 브랜치 저장 완료)이다. 시작 추적 변경0, fetch 후 HEAD/origin 작업 브랜치 동일. 기존 `codex/rapfi-integration`에서 후속 확인했고 main `a15a871`에는 통합하지 않는다.
-- 사용자에게 발생한 대국 실패의 정확한 현상은 재현하지 못했다. 기존 착수/교대는 실제 로컬 GUI에서 준비3수→백I9→흑H7(3→4→5수, 백B→흑A→백B)로 확인했다. 규칙/차례 로직을 새로 구현하거나 변경하지 않았다.
-- 실행 직후 빈 보드는 시작 대기이며 클릭할 수 없다. 버튼을 **대국 시작**으로 명확히 하고 시작 전/사람 클릭·자동 교대/AI 응답 대기/종료 안내를 보완했다. 이미 끝난 준비 배치에도 진행 안내가 나오던 문구를 분리했다. README·배포 안내도 갱신했다.
-- 실제 승리(G1→E8), 삼삼 금수패(H8), 준비199수→E14의200수 무승부, 승리 후 입력 차단, 금수 표시 전환, 잘못된 compact 보존, 기권/재시작을 확인했다. 모두 자체 작성 개발용 배치다. 문구 변경 후 최종 GUI에서는 최대화/I9/H7·자동 교대·기권/종료 표시를 재확인했다.
-- 최종 GUI 사람A/흑·RapfiB/백: 준비3수→AI I7→사람 H7→AI H6→사람 차례(6수). 실제 응답11237.4/7269.09ms, 두 자식 모두 reaped1/forced0/exit0. 이후 Alt+F4 정상 닫기, 호스트 조회에서 omok/Rapfi0개. 아래 이전 통신/CPU 계약은 유지한다.
-- 실제 명령은 아래 기존 build/CTest/hash/objdump 경로 그대로다. **최종 빌드·install 성공, CTest86/86(8.03초)**. build/dist SHA256 `472E232A14C82409669331C50D59382B6E5DDFFCC79FC84DD541B9649F45A838` 일치, GUI DLL은 Windows 기본4개다. 문구 수정 후 규칙 종료 세 경로를 모두 GUI에서 반복하지 않았으며 자동 회귀는 전체 통과했다.
-- 상세 재현/실행 로그 이름·제약은 [최신 실제 대국 검증](verification-playability.md)을 우선한다. 가장자리 바깥 클릭은 기존 계약상 거부되므로 격자선 안쪽을 클릭한다. 이번에는 반대색 GUI 배정·이미 종료된 배치의 새 안내, 모든 크기/DPI, 최악 재귀/장시간 자원, 긴 Rapfi 완결 대국·시간/자원 경계·클린OS는 미검증이다. 전체 단계 완료로 표시하지 않는다.
-- 변경 코드·안내·검증·인계를 함께 커밋/일반 푸시한다. 최종 ID/푸시 결과는 완료 보고와 Git에서 확인한다. 다음 작업은 남은 GUI 배정/종료 배치, 실제 엔진 장기/오류/자원 검증이다. 외부 엔진·가중치는 계속 제외한다.
+## Git와 보존 기준
 
-아래는 Rapfi 초기 연결 당시의 기록이다. 최신 GUI 문구·검증/해시는 위 추가 작업과 연결 문서를 따른다.
+- 확인 기준 구현 커밋은 `fda491fcd17ac83a6203c2d9741cde63a65985da`다. 시작 시 `codex/rapfi-integration`의 추적/미추적 변경 없음, origin은 기존 GitHub 저장소였다. fetch 후 HEAD/원격 작업 브랜치 차이0을 확인했다.
+- main/origin/main은 `a15a871491b74c1685d1dad072c9edb392abc6f7`이다. 미통합 GUI/AI/빈 보드 기능 이력을 보존하기 위해 기존 작업 브랜치에서 문서를 이어서 수정했다. 전환/재초기화/병합/브랜치 삭제/강제 푸시는 하지 않았다.
+- 과거 [지침](history/agents-through-2026-10-24.md)·[승인](history/approvals-through-2026-10-24.md)·[계획](history/development-plan-through-2026-10-24.md)·[인계](history/handoff-2026-10-24.md)를 보존했다. 상대 링크만 위치에 맞게 보정했고 당시 제외/다음 작업 문구를 현재 지시로 쓰지 않도록 표시했다. 개별 상세 검증 기록은 그대로다.
+- 검증한 관련 Markdown만 작업 단위로 커밋/일반 푸시한다. 최종 커밋ID·푸시 성공 여부는 완료 보고와 Git에서 확인한다. 외부 엔진·모델·데이터·build/dist·비밀정보는 포함하지 않는다.
 
-## 기준·Git·승인
+## 실제 코드와 검증 근거
 
-- 시작 기준: `e6cbcb6619debf9c40361f5582bd4caf85f64b33`(로컬 대국 구현/검증 기록). 기존 WIP 소스는 `5023aa2`부터 원격에 보존돼 있었다.
-- 시작 미커밋 변경은 사용자 설치 external/뿐이었다. 코드 변경은 없었다. 원본 엔진/모델을 보존하고 `.gitignore`에 `/external/rapfi/` 전체 제외를 추가했다.
-- fetch 후 기존 작업 브랜치/원격 일치를 확인하고 GUI 코드에 의존하므로 그 이력을 유지한 `codex/rapfi-integration`을 만들었다. main은 오프닝 단계 `a15a871`이며 이번 단계에서 통합하지 않는다. 기존 전체 GUI 수동 항목과 AI 단계 후속 항목이 남아 있기 때문이다.
-- 사용자는 자체 AI 개발이 아닌 외부 Rapfi 별도 프로세스·Gomocup/Piskvork 통신·준비 렌주/응답 검증·시간/오류/이전 응답 차단·GUI 사람 대 Rapfi 연결을 승인했다. 과거 AI 구현 제외보다 이 후속 지시가 우선한다. AI 대 AI·Swap2 연결·사람 시계·기보·자체 AI로 확대하지 않았다.
-- 구현·문서·재현용 텍스트 기록을 함께 커밋/일반 푸시한다. 최종 커밋 ID·푸시 결과는 완료 보고에 남긴다. 실제 상태는 git status/log와 원격으로 확인한다. 바이너리/모델/build/dist/개인 파일은 포함하지 않는다.
+| 영역 | 현재 구현 | 구분할 미구현/미검증 |
+|---|---|---|
+| state/rules | Windows/GUI 독립 C++20 상태·렌주 판정·구조적 거부/보존 | evaluate의200수는 고정 정책. 학습/대회 프로필 분리·모든 배치/최종 심판 적합성은 미완료 |
+| opening/match | 준비 복원·DirectRenju·색/차례/결과·권한·사본 적용·Token·메모리 이벤트 | 공식 준비 데이터/사용 조건 미확보, Swap2는 구조 전환 후 RuleContractRequired 차단 |
+| 외부 엔진/GUI | Rapfi 프로세스·BEGIN/BOARD 송신·응답 검증·시간/자원/취소, 로컬 사람 대 사람/대Rapfi | 자체 수신 프로토콜 아님. 긴 엔진 완결 대국·자원 경계·전체 GUI/DPI/클린OS는 미검증 |
+| 기록/학습/제출 엔진 | tests/engine_probe 등의 제한적 검증 도구, records는 INTERFACE 예약 | 범용 무화면 환경/합법 수 열거·반복 대국·기보 파일·Python 연동·데이터/모델/탐색/학습·자체 독립 엔진은 아직 없음 |
 
-## 읽을 문서와 구현 상태
+[처음부터 검증](verification-direct-start.md)에 기록된 마지막 실제 빌드/install·CTest89/89(2026-10-24)·실제 Rapfi5경우/GUI 일부 확인을 보존했다. [규칙](verification-rules.md)·[오프닝](verification-opening.md)·[착수 GUI](verification-playability.md)·[Rapfi](verification-rapfi.md) 검증도 각 시점/범위의 근거다. **이번 문서 작업에서 이 실행들을 재수행하지 않았다.** 기존 루트 CMake는 Windows x64 전용이며 코어 독립성을 전체 학습 환경의 이식성 검증으로 확대하지 않는다.
 
-[AGENTS](../AGENTS.md)·[README](../README.md)·[Rapfi 설치/프로세스/변환 계약](rapfi-integration.md)·[최신 실제 검증](verification-rapfi.md)을 먼저 읽는다. [match](match-contract.md)·[state](state-model.md)·[rules](rules-spec.md)·[opening](opening-contract.md)의 기존 책임은 유지한다. 과거 [로컬 GUI 검증](verification-match.md)은 당시 미검증 기록이며 이번의 실제 클릭/AI 대국 관찰과 함께 읽는다.
+## 이번 변경과 현재 경계
 
-- state/rules/opening/match: 기존15×15·준비 배치·렌주·200수·금수패·권한·사본 적용·세션/revision을 유지했다. match에 엔진 실패 결과 적용을 추가했다. 정상 엔진 좌표도 기존 place/rules에서 검증한다.
-- ai: 실제 정적 라이브러리로 CPU 검사, 순서 보존 BOARD 변환, Win32 프로세스/제한 핸들/파이프/Job, 제한 시간, 로그, 취소 가능한 작업자를 구현했다. 자체 평가/탐색은 없다.
-- gui: 로컬 사람 대 사람 외에 RapfiA/사람B·사람A/RapfiB, 자동 CPU 적합 경로/직접 경로 입력, AI 차례의 사람 입력 차단, 사람 기권, 재시작/닫기 취소, 엔진 상태/남은 예산/로그 이름을 연결했다.
-- records는 INTERFACE·미구현이다. AI 대 AI·BEGIN/TURN 증분·SWAP2BOARD·Swap2 규칙 바인딩·기보/복기·사람 시계·자체 AI는 후속이다.
+- AGENTS를 현행 목표·책임·데이터/평가·Git/인계 원칙 중심으로 정리하고 긴 이력/반복 수치·해시는 연결 문서로 옮겼다. README/개발 계획/승인 기록의 목적·순서를 맞췄다.
+- README의86개 표기와 실제 최종 기록89개의 차이, 상태 계약의 프로토콜 미구현 표기를 바로잡았다. 과거 계획의 완료 기준 문구를 실제 구현 완료로 해석하지 않도록 새 상태 표를 작성했다.
+- 학습 환경과 제출 엔진, 외부 엔진 제어와 자체 엔진 수신, 기보 데이터 저장과 GUI 복기를 구분했다. 데이터 권리/계보·대국 단위 분할/증강·보상/오류 대국·평가 재현 원칙을 추가했다.
+- 기존15×15 렌주/PreparedRenju/DirectRenju/별도 Swap2·외부 엔진 실패/판정 충돌 정책은 바꾸지 않았다. 2026-10-19~23 일반 렌주 조사 프로필의 시간/메모리/CPU/200수/오프닝을 모든 학습/대회 상수로 확정하지 않았다. 현재 고정 구현은 향후 설정 분리 계획과 구분한다.
+- 정책·가치 모델/MCTS는 후보, 학습 장비·Python/프레임워크/추론·데이터/기보 형식/권리·보상/오류 대국·평가/승격 기준·목표 연도/리그/서버·Swap2 바인딩/필수 명령·배포 권리는 미정이다. 공식 공고/라이선스를 이번에 새로 확인한 것으로 보고하지 않는다.
 
-## 설치·선택 기준
+## 가장 먼저 제안하는 작업 하나
 
-설치 폴더는 `external/rapfi/Rapfi-engine/`이며 원본 config/가중치를 수정하지 않았다. 현재 선택은 `pbrain-rapfi-windows-avx2.exe`, ABOUT는 **Rapfi0.43.01 (clang++19.1.5, Windows SSE41 AVX2)**다.
+**GUI 독립 대국 환경 어댑터와 검증용 CLI**를 제안한다. 아직 착수하지 않았다. [계획의 단일 작업 명세](development-plan.md)에 목적·범위·선행 조건·산출물·완료 기준·제외 범위를 기록했다.
 
-현재 CPU Intel Core Ultra5 226V의 SSE41/AVX2/FMA/BMI2/AVXVNNI와 OS 벡터 상태를 확인했다. AVX512는 미지원이다. 자동 선택은 보수적으로 Windows AVX2/SSE만 사용한다. config는 min0.43.1·mix9svq·좌표 변환 none·스레드1·DB 비활성이다. 모델210901과 렌주 흑/백 전용 가중치를 사용한다. [전체 파일 크기/해시](verification/rapfi-installation.json)를 따른다. config 해시는 작업 전후 같았다.
+기존 C++20 state/rules/opening/match를 재사용해 스냅샷·합법 수·착수·종료/결과·초기화/시작 배치 복원을 창 없이 실행/검증한다. DirectRenju/자체 준비 fixture로 확인하며 공식 데이터/Rapfi/GPU/학습 프레임워크가 필수는 아니다. 준비/종료/RuleContractRequired·Token/거부 시 전체 보존·행열/색/참가자를 검증하고 관련 테스트/기본 빌드를 유지한다. 반복/병렬 대국·영구 기보·학습/탐색·자체 수신기·GUI 개선은 이 첫 작업에 일괄 포함하지 않는다. 새 명령/설정은 구현 후 실제 검증해 기록한다.
 
-공식 소스 조사 기준은 Rapfi250615/`1be1551ced57e38d53ed58f6d74bf6f8b4bdc230`이다. 로컬 바이너리와 정확한 빌드 소스 대응은 미증명이며 재배포하지 않는다. GPL/모델 조건 확인 없이 향후 제품 ZIP에 동봉하지 않는다.
+## 이번 문서 검증과 재현
 
-## 핵심 계약과 제약
+실제로 수행한 시작 확인은 `git status --short --branch`, `git remote -v`, `git log`, `git fetch origin`, `git rev-list --left-right --count HEAD...origin/codex/rapfi-integration`, 소스/계약/검증 기록 읽기다. 문서 검증은 상대 링크 존재, 용어/상충 제한 검색, 보존 문서의 원문 대응, `git diff --check`, 변경 경로의 Markdown 한정 여부/커밋 후보 점검으로 수행한다. 최종 결과는 아래에 남긴다.
 
-- 매 요청 새 프로세스 → ABOUT/START15 → INFO rule4·메모리/스레드/pondering → 설정 처리 확인 ABOUT → 남은 시간 → 원래 이력 순 BOARD/DONE → 좌표 → END/정리. 이전 엔진 보드를 재사용하지 않아 RESTART 불필요. TT/모델 캐시 재사용이 없어 성능 비용이 있다.
-- row/column은 y/x로 정확히 변환한다. field1/2는 현재 엔진 참가자의 색 기준 own/opponent다. 준비 돌의 실제 actor 없음과 색 소유자를 혼동하지 않는다. 기본3수의 백 엔진 BOARD는 `7,7,2 / 8,7,1 / 6,8,2` 순서다.
-- 형식 오류·진단·stderr·프로세스 종료를 구분하고, 16KiB 라인/256KiB 요청 기록 한도를 둔다. 범위/중복/금수는 match에서 검증한다. 초기화/지원 실패는 Aborted, 대국 중 시간 초과/잘못된 출력/종료/불법 수는 상대 승리다. 별도 재시도는 없다.
-- GUI의 AI 예산은 한 수30초/누적180초, 초기화 감시10초다. 사람 시계는 없다. 초기화/매 요청 프로세스 비용도 누적 예산에서 차감한다. 모델/통신 여유를 검색 시간에서 남기며 관리자 deadline은 완화하지 않는다.
-- Job은 프로세스1GiB, affinity는 한 논리CPU다. 원본 config의 TT 외 여유0 때문에 엔진에는512MiB를 전달해 모델 공간을 남긴다. INFO thread_num1/pondering0을 적용한다. 전체 대회 자원 검증 완료는 아니다.
-- 작업자는 값 스냅샷만 받고 GUI를 호출하지 않는다. 취소 세대와 Token/actor/종료 상태를 작업자·UI·match에서 확인한다. 재시작/기권/닫기 후 이전 결과를 적용하지 않는다. END 후 기다린 뒤 필요한 경우 직접 생성한 엔진만 정리하고 join한다.
-- GUI의 원시 로그는 실행 파일 옆 logs, probe는 build/rapfi-logs다. Git 제외이며 선별된 재현 텍스트만 docs에 보존했다. 현재 END는 별도 raw 프레임이 아닌 최종 정리 요약으로 확인한다.
+- 저장소 Markdown31개(추적+새 문서)의 상대 링크234개 검사, 누락0. 외부 URL의 최신 유효성은 이번에 재확인하지 않았다.
+- 과거4문서가 기준 HEAD 원문과 상대 링크 보정/줄바꿈을 제외하고 일치함을 비교했고 불일치0이었다. 상세 과거 검증 파일은 변경하지 않았다.
+- 현재 지침/계획/README/승인/학습 문서와 관련 계약에서 오래된 제외/선행 조건 검색 후 과거 범위임을 표시하거나 현행 방향으로 교체했다. 모델/탐색/장비/리그의 임의 확정과 새 구현 완료 표기는 없다.
+- `git diff --check` 통과, 비Markdown 변경0. 코드·테스트·CMake·빌드 스크립트·런타임 배포 안내 원본은 변경하지 않았다. 첫 Unicode 용어 스캔은 rg의 속성명 미지원으로 실패해 코드포인트 범위로 다시 검사했고 예기치 않은 한자 표기0을 확인했다.
 
-## 실제 검증·명령
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -AliasParent "$env:TEMP\omok-rules-build"
-ctest --test-dir .\build\native-release --output-on-failure --no-tests=error
-.\build\native-release\bin\omok_engine_probe.exe .\external\rapfi\Rapfi-engine\pbrain-rapfi-windows-avx2.exe 1000
-Get-FileHash build/native-release/bin/omok.exe,dist/omok/omok.exe -Algorithm SHA256
-```
-
-- 최종 빌드/링크/install 성공, 컴파일 경고 출력 없음. 기존 빌드 스크립트·ASCII 경로 우회 무변경.
-- **최종 CTest86/86 통과, 9.15초**. 상태14·규칙39·오프닝14·match14·AI5. AI5는 고정 응답 모의 엔진이며 실제 Rapfi 검증과 구분한다.
-- 최종 C++ 실제 Rapfi 세 경우: 백B(준비3수), 흑A(준비3수+사람I9), 백A(흑B/백A 배정). 모두8,6→I7을 기존 match에 합법 적용했다. 947.307/918.763/922.211ms, 모두 reaped1/forced0/exit0. [출력](verification/rapfi-probe.txt)·[통신](verification/rapfi-case-0.txt)을 참고한다.
-- GUI 실제 확인: 사람A/RapfiB 시작 → 백I7 적용 → 사람 흑H7 클릭 → 다음 AI 요청 → 재시작3수 → 기권/이전 요청 취소. 반대 역할 RapfiA/사람B에서 백I9 클릭 → 흑I7 적용 → 사람 기권도 확인했다.
-- 요청 중 Alt+F4 후 실제 취소 로그와 omok/Rapfi 프로세스 소멸을 확인했다. 강제 종료는 실제 Rapfi 정상 경로에서 없었다. 모의 END 무응답 자식의 제한 정리는 별도 자동 검증했다.
-- 화면 안내·격자/돌·차례·마지막 수·기권 결과와 반응성을 관찰했다. 긴 엔진 정보와 종료/재시작 문구를 보완했다. 마지막 사람 대기 문구1줄은 빌드/테스트 후 시각 재확인을 수행하지 않았다.
-- build/dist 해시는 `1132A9192ECBF9DCC74599CF8E0A1A0DFC2D0BC90B2DC679ED8E27CDC7DDEB35`로 일치. GUI DLL4개는 Windows 기본 DLL뿐, Rapfi는 KERNEL32/ADVAPI32다.
-
-## 실패·남은 조건·다음 작업
-
-실제1GiB TT 할당 실패와 지연 가중치 로드에 따른1초 시험 시간 초과를 확인해512MiB 예산·설정 확인/시간 차감·검색 여유로 수정했다. 첫 CMake Threads 가져오기 범위 오류도 수정했다. 실패 기록을 성공으로 덮지 않고 [검증 기록](verification-rapfi.md)에 구분했다.
-
-이번 목표인 외부 엔진 초기화/준비 한 수·match 적용·GUI 사람 대 Rapfi 초기 연결은 수행했다. **전체5/6단계·대회 적합성은 미완료다.** 실제 승리/금수/200수까지 긴 Rapfi 대국, 누적180초 소진·실제 오류 주입, 자원 피크/경계·장시간 누수·다중 모니터 DPI, 개발 도구 없는 Windows10/11·MSVC는 미검증이다. 기존 로컬 GUI의 미검증 항목도 자동으로 완료하지 않는다.
-
-다음 작업은 현재 브랜치/원격·해시를 확인하고 실제 장기 대국/각 종료·오류·마지막 표시 변경을 검증하는 것이다. 새 프로세스 방식의 비용을 측정한 뒤 같은 규칙/순서/Token 계약을 유지하는 프로세스 재사용을 검토할 수 있다. AI 대 AI·Swap2 통신/규칙·공식 데이터·외부 매니저 전체 검증은 별도 범위로 진행한다. 자체AI를 시작하지 않는다. main 통합은 남은 단계 검증과 기존 이력 보존 정책에 따라 판단한다.
+코드/빌드 설정 변경이 없어 전체 빌드·CTest·GUI·엔진 재실행은 생략했다. 학습/모델/제출 적합성을 이번 결과로 완료 처리하지 않는다. 과거 검증의 미완료/제약과 실패 기록은 보존된 문서에서 이어 확인한다.
