@@ -1,0 +1,5 @@
+{
+  "model": {"channels": 8, "layers": 2, "value_hidden": 16},
+  "training": {"seed": 17, "batch_size": 16, "lr": 0.01, "weight_decay": 0.0001,
+    "policy_weight": 1.0, "value_weight": 1.0, "gamma": 0.98, "augment": true, "threads": 1}
+}

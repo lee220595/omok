@@ -1,6 +1,6 @@
 # 원본·정규화 기록·학습 샘플 계약
 
-2026-10-28 설계. **최소 JSON trace 저장/재생은 [Python 환경](python-headless.md)에 구현했다. 외부 기보 변환기/학습 샘플 파이프라인은 미구현**이다. 저장 인코딩 선택은 [결정 목록](requirements-pending.md)을 따른다. 기존 [오프닝 이벤트](opening-contract.md)·[match 결과](match-contract.md)를 복제하지 않고 보존한다.
+2026-10-28 설계. **최소 JSON trace 저장/재생은 [Python 환경](python-headless.md), 권리 manifest→재생 검증→샘플/대국·D4 그룹 분할은 [지도학습 구현](supervised-learning.md)에 기능 검증했다. 외부 기보 형식 파서·실제 권리 확인 학습 데이터셋은 미구현/미확보**이다. 저장 인코딩 선택은 [결정 목록](requirements-pending.md)을 따른다. 기존 [오프닝 이벤트](opening-contract.md)·[match 결과](match-contract.md)를 복제하지 않고 보존한다.
 
 ## 세 층과 변환 계보
 

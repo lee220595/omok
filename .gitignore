@@ -9,6 +9,9 @@ dist/
 /runs/
 __pycache__/
 *.pyc
+*.pt
+*.pth
+/experiments/
 
 # CMake / Ninja generated state and local presets
 CMakeFiles/

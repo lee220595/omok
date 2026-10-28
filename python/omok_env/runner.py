@@ -29,13 +29,14 @@ def run(output, *, games=2, seed=0, players=("ordered", "random"), compact="",
         source_id="local-v1", black_owner=0, max_actions=None, library=None):
     if type(games) is not int or games < 1 or type(seed) is not int:
         raise ValueError("invalid games/seed")
-    if len(players) != 2 or any(p not in ("ordered", "random") for p in players):
+    if len(players) != 2 or any(not ((isinstance(p,str) and p in ("ordered","random"))
+                                    or (hasattr(p,"select") and hasattr(p,"descriptor"))) for p in players):
         raise ValueError("unsupported players")
     if black_owner not in (0,1) or (max_actions is not None and (type(max_actions) is not int or max_actions < 0)):
         raise ValueError("invalid owner/action cap")
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
-    config = dict(games=games, seed=seed, participants=list(players), compact=compact,
+    config = dict(games=games, seed=seed, participants=[p if isinstance(p,str) else p.descriptor for p in players], compact=compact,
                   source_id=source_id, black_owner=black_owner, alternate_colors=True,
                   max_actions=max_actions, profile=PROFILE)
     version = code_version()
@@ -53,6 +54,8 @@ def run(output, *, games=2, seed=0, players=("ordered", "random"), compact="",
     summary = Counter()
     started = time.perf_counter()
     played_moves = 0
+    selection_ms=[]
+    winners=Counter()
     for index in range(games):
         path = output/f"game-{index:06d}.json"
         start = dict(compact=compact, source_id=source_id, black_owner=(black_owner+index)%2, profile=PROFILE)
@@ -65,6 +68,7 @@ def run(output, *, games=2, seed=0, players=("ordered", "random"), compact="",
             if prior["status"] == "completed":
                 summary["completed"] += 1
                 summary[prior["final"]["result"]] += 1
+                if prior["final"]["winner"] is not None: winners[str(prior["final"]["winner"])]+=1
                 continue
             attempt = 1
             while (output/f"game-{index:06d}.attempt-{attempt}.json").exists():
@@ -82,14 +86,26 @@ def run(output, *, games=2, seed=0, players=("ordered", "random"), compact="",
                         if max_actions is not None and len(record["actions"]) >= max_actions:
                             finish(env, record, "interrupted", dict(reason="runner_action_cap"))
                             break
-                        legal = [i for i, valid in enumerate(env.mask()) if valid]
+                        current_mask=env.mask()
+                        legal = [i for i, valid in enumerate(current_mask) if valid]
                         if not legal:
                             finish(env, record, "blocked", dict(reason="no_legal_action"))
                             break
                         actor = env.snapshot()["next_actor"]
-                        action = legal[0] if players[actor] == "ordered" else rng.choice(legal)
+                        player=players[actor]
+                        tick=time.perf_counter()
+                        inference=None
+                        if isinstance(player,str):
+                            action=legal[0] if player=="ordered" else rng.choice(legal)
+                        else:
+                            inference=player.select(env,current_mask)
+                            action=inference["action"]
+                            if action not in legal: raise ValueError("player returned an illegal action")
+                        selection_ms.append((time.perf_counter()-tick)*1000)
                         pending = dict(action=action,actor=actor,token=env.snapshot()["token"])
                         apply(env, record, action)
+                        if inference is not None:
+                            record["actions"][-1]["inference"]={k:v for k,v in inference.items() if k!="token"}
                         pending = None
                         played_moves += 1
                     else:
@@ -110,9 +126,11 @@ def run(output, *, games=2, seed=0, players=("ordered", "random"), compact="",
         summary[record["status"]] += 1
         if record["status"] == "completed":
             summary[record["final"]["result"]] += 1
+            if record["final"]["winner"] is not None: winners[str(record["final"]["winner"])]+=1
         if record["status"] == "interrupted":
             break
-    result = dict(counts=dict(summary), elapsed_seconds=time.perf_counter()-started, new_moves=played_moves)
+    result = dict(counts=dict(summary), winners=dict(winners),elapsed_seconds=time.perf_counter()-started, new_moves=played_moves,
+                  selection_samples=len(selection_ms),mean_selection_ms=sum(selection_ms)/len(selection_ms) if selection_ms else None)
     save(output/"summary.json", result)
     return result
 

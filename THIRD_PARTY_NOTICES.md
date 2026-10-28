@@ -1,5 +1,7 @@
 # 배포 구성과 외부 라이선스
 
+선택적 지도학습은 사용자 설치 PyTorch2.14.1+cpu와 전이 의존성을 프로젝트 로컬 가상환경에서 사용한다. PyTorch BSD3-Clause 라이선스와 공식 설치 경로를 확인했다. [실제 의존성/선정/한계](docs/supervised-learning.md)와 [버전 검증](docs/verification/supervised-learning.json)을 따른다. 이 패키지들을 기존 GUI ZIP 또는 Git에 동봉하지 않으며 향후 제출용 런타임 재배포는 별도 검토한다.
+
 선택적 Python 무화면 연결은 사용자 설치 Python의 ctypes/array/json 등 표준 라이브러리만 사용한다. Python·제3자 Python 패키지를 GUI ZIP에 동봉하지 않는다. 선택 DLL의 GCC/MinGW 정적 런타임에는 아래 기존 고지를 동일하게 적용한다. 별도 외부 JSON/바인딩 라이브러리는 추가하지 않았다.
 
 현재 GUI는 자체 작성 C++ 코드와 Windows 기본 User32/GDI32 API를 사용한다. Qt·wxWidgets, 매니저·AI 코드·모델·바이너리는 포함하지 않는다. Windows의 DLL은 OS 제공 구성요소이며 이 패키지에 복사·재배포하지 않는다. Windows 사용 조건은 대상 OS에 따른다.

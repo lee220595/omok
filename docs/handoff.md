@@ -1,44 +1,62 @@
 # 오목 프로젝트 개발 인계
 
-갱신: 2026-10-28. 승인 범위는 **기존 C++ 기반의 Python 무화면 환경·순차 자동 대국·기록/재생·재개·계측 구현**이다. 모델/지도학습/추론/MCTS/RL/제출 수신기/GUI 개선은 이번 범위에 없고 시작하지 않았다. 이전 인계는 [보존본](handoff-before-python-2026-10-28.md)에 있다.
+2026-10-28 갱신. 이번 승인 범위는 **PyTorch 작은 정책·가치 CNN의 지도학습·저장/로드/SL 재개·RL 초기 가중치·기존 무화면 환경의 모델 추론 대국과 기록 재생**이다. 기능 검증을 완료했고 MCTS/RL 업데이트·Gomocup 프로토콜/패키징·GUI·Rapfi 학습/평가·다른 규칙은 구현/실행하지 않았다. 다음 단계는 자동 시작하지 않는다. 이전 [무화면 인계](handoff-before-sl-2026-10-28.md)와 더 과거 기록을 보존한다.
 
-## 현재 코드와 변경
+## 현재 구현과 변경
 
-- src/headless/bridge.cpp와 CMake: 선택적 omok_headless DLL, ABI1, Controller 생성/복사/정리·direct/prepared 초기화·스냅샷/마스크/착수/닫기. 기존 state/rules/opening/match 판정과 금수패·200수 우선순위를 재사용했다. 기존 코어/GUI/외부 엔진 소스는 변경하지 않았다.
-- python/omok_env: ctypes 환경·0..224행동·4채널 float32 관측·고유 game ID/Token·독립 복제, JSON trace 안전 저장/별도 환경 재생, ordered/random·시드·참가자 흑백 교대·완료 단위 재개·오류/중단 분리, benchmark. Python 판정 복제·모델·보상 업데이트 없음.
-- python/test_headless.py: 소형 자체 fixture와 10개 테스트. CMake 옵션 ON일 때 Python 발견 시 headless.python CTest 등록. 기본 옵션 OFF는 기존 빌드를 유지한다.
-- scripts/build.ps1에 -Headless 추가. .gitignore에 runs/Python 캐시 제외. README·계약·계획·기술 결정·배포 고지와 [실제 명령/API/기록/측정](python-headless.md) 갱신.
+- python/omok_learning의 contracts/data/fixtures/model/train/checkpoint/player/evaluate를 추가했다. 데이터 권리 manifest/원본 해시→기존 trace 재생→C++ 환경 착수 전 관측/마스크→대국·D4 그룹 분할→샘플→CPU SL→체크포인트→모델 합법 대국·독립 재생 경로다. Python에 판정을 복제하지 않았다.
+- 모델은 Conv3x3 두 층/8채널·공유 특징/정책 Conv1x1/가치 평균 pooling+MLP, 1,050파라미터다. CE+MSE/AdamW/StepLR와 선택/재개 설정은 configs/small-sl-cpu.json에 있다. SL과 미래 RL에서 같은 클래스/계약을 사용한다.
+- 추론용 best.pt와 SL 재개용 latest.pt를 구분하고 계약/형상/해시/필수 상태를 검사한다. CPU·Python RNG/optimizer/scheduler/완료 epoch cursor0를 저장한다. RL 초기화는 실제 공유 가중치 로드만 하며 기본 optimizer 초기화/선택 보존을 구분한다. RL 경험/업데이트·가짜 성공 함수는 없다.
+- python/omok_env/runner.py에 select(env,mask)/descriptor 경계·모델 식별자·inference 메타데이터·승자/선택시간 요약을 추가했다. 기존 ordered/random, trace v1 필수 필드/재생·재개를 보존한다. 기본 경로는 torch를 import하지 않는다. C++/CMake/GUI/외부 엔진 소스 변경 없음.
+- python/test_learning.py의 선택적 unittest5개, requirements-learning.txt, .gitignore의 모델/실험 제외, README/계약/계획/결정/배포 고지·[실행 안내](supervised-learning.md)·[소형 검증 JSON](verification/supervised-learning.json)을 갱신했다.
 
-## 실제 검증과 실행
+## 실제 데이터·학습과 결과
 
-검증 OS Windows11 x64 10.0.26200, Python3.13.7 x64, GCC13.3.0 MinGW-w64 POSIX SEH, CMake3.29.3, Ninja1.12.1. 새 의존성 설치 없음. 기본 빌드/install 성공 후 선택 DLL 빌드/install도 성공했다. ASCII 별칭은 C:/Users/leesn/AppData/Local/Temp/omok-headless-build/omok-build-71f60837f90e다.
+기존 runs의 기준 플레이어 기록과 자체 fixture를 확인했으며 고수 기보·외부 권리 확인 자료는 없었다. 외부 수집 없이 자체 작성한 쉬운 합법 대국10판/95수로 기능을 검증했다. 흑/백 각각5판의 5목 종료다. 이는 고수 기보/실력 학습 데이터가 아니다.
+
+대국·D4 중복 그룹 분리 후 train6판58샘플, validation2판18샘플, final2판19샘플이다. 전체 대국 그룹 교차0, D4 정확 국면 공유 train/val1·train/final2·val/final1, 첫4수 prefix 공유0이다. 공유 빈 보드 등은 제거하지 않고 보고했다. 모든 유사 국면/대회별 독립성/실력 평가 분할 완료를 주장하지 않는다. 준비 돌은 정답이 아니며 금수 시도·비보드 결과·실행 오류의 정책/가치 자격을 구분한다. 기권/시간패 외부 사건 파서는 현재 미지원이며 손상으로 임의 간주하지 않는다.
+
+CPU1스레드/seed17/batch16, lr0.01·weight_decay0.0001·gamma0.98, D4 증강, 정책/가치 가중치1로 8epoch→SL 재개12epoch까지48업데이트를 실행했다. 첫8epoch1.52588초·재개4epoch0.73762초(프로세스 import/설치 제외). train CE5.39567→4.30030, valueMSE0.99864→0.86686. 검증 합산손실로 선택한 것은 epoch11/step44이며 final은 선택에 사용하지 않았다. 별도 단일 train 샘플100업데이트는 합산손실6.39081→0.00000250339·top1일치/가중치 갱신을 확인했다. 이는 코드 과적합 검사다.
+
+모델 best SHA256 a7f9678942246028624ce694c35d16fc9d0e08b855f3fc385f4cac43b75be310, 9,733바이트. 데이터 ID e589445cc79805a3759f098c4e5c5e22fcfd5efb2fe6db95b4320f8e9fa5c6c2. 전체 분할 목록/원본·DLL·체크포인트 해시와 runtime/설정은 검증 JSON에 있다. 원시 trace/샘플·가상환경/로그/체크포인트는 runs/build에 있고 Git 제외다.
+
+선택 모델 대국은 ordered 상대2판0승2패, random 상대2판2승0패, 동일 모델 상대2판 모두 정상 종료(A/B각1승)다. 모두 흑백 교대/기본 seed23, 총6판116수·오류0, 저장 후 독립 재생 일치. 소표본 개발 연결 점검이며 강함/Elo/개선 근거가 아니다. 각 CLI의 준비 구간 일부는 겹쳤으므로 대국 elapsed는 고립 처리량으로 해석하지 않는다. 별도 단일 프로세스 warm100회는 준비3수 상태에서 모델 forward+텐서/마스크 정규화/검사 평균1.39880ms, 환경 상태/마스크 재확인 포함 선택1.93509ms(로드 제외, affinity고정 없음)였다.
+
+선택을 고정한 뒤 별도 final fixture19샘플 검사: CE4.33684, valueMSE1.07689, top1=0, top5=0.21053. 실제 고수 기보 SL 성능·실력 향상은 미검증이다.
+
+## 실제 환경·명령·검증
+
+Windows11 x64 10.0.26200, Python3.13.7 x64, PyTorch2.14.1+cpu, Intel Core Ultra5 226V/논리CPU8, GCC13.3.0 MinGW-w64/CMake3.29.3/Ninja1.12.1. CPU 한 스레드/torch deterministic algorithms다. 선택 가상환경은 build/learning-venv. PyTorch BSD3-Clause/공식 CPU index를 확인했고 GUI/제출 패키지에 동봉하지 않는다. 전이 버전은 검증 JSON에 있다.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -AliasParent C:/Users/leesn/AppData/Local/Temp/omok-headless-build -Headless
+New-Item -ItemType Directory -Force build/pip-temp | Out-Null
+$env:TEMP=(Resolve-Path build/pip-temp).Path
+$env:TMP=$env:TEMP
+python -m venv build/learning-venv
+build/learning-venv/Scripts/python.exe -m pip install -r requirements-learning.txt
 $env:PYTHONPATH='python'
-python -m unittest discover -s python -p test_headless.py -v
+build/learning-venv/Scripts/python.exe -m omok_learning.fixtures runs/sl-fixtures
+build/learning-venv/Scripts/python.exe -m omok_learning.data runs/sl-fixtures/sources.json runs/sl-release-dataset
+build/learning-venv/Scripts/python.exe -m omok_learning.train runs/sl-release-dataset/dataset.json runs/sl-release-part --epochs 8 --config configs/small-sl-cpu.json
+build/learning-venv/Scripts/python.exe -m omok_learning.train runs/sl-release-dataset/dataset.json runs/sl-release-trained --epochs 12 --resume runs/sl-release-part/latest.pt --config configs/small-sl-cpu.json
+build/learning-venv/Scripts/python.exe -m omok_learning.evaluate games runs/sl-release-trained/best.pt runs/sl-games-ordered --opponent ordered --games 2
+build/learning-venv/Scripts/python.exe -m omok_learning.evaluate games runs/sl-release-trained/best.pt runs/sl-games-random --opponent random --games 2
+build/learning-venv/Scripts/python.exe -m omok_learning.evaluate games runs/sl-release-trained/best.pt runs/sl-games-self --opponent self --games 2
+build/learning-venv/Scripts/python.exe -m omok_learning.evaluate final runs/sl-release-trained/best.pt runs/sl-release-dataset/dataset.json runs/sl-final-evaluation.json
+build/learning-venv/Scripts/python.exe -m unittest discover -s python -p test_learning.py -v
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -AliasParent C:/Users/leesn/AppData/Local/Temp/omok-headless-build -Headless
 ctest --test-dir build/native-release --output-on-failure --no-tests=error
-python -m omok_env.runner runs/smoke --games 2 --seed 17
-python -c "from omok_env.records import replay; print(replay('runs/smoke/game-000000.json')['result'])"
-python -m omok_env.benchmark runs/benchmark-final --samples 30 --games 4
 ```
 
-- 기존 CTest89개 통과(11.59초). 선택 DLL/Python 등록 후 최종 전체90개 통과(14.02초, Python 내부10개 검사). Python 별도10개도 통과(3.772초).
-- 좌표225왕복, 4개 환경의 마스크/실제 판정900개 비교, 정확한5목 우선·금수 시도 반칙패/보드 불변·200수 무승부·종료 후 입력, 복원/관점·복제 독립·잘못된 요청/오래된 Token 보존·100회 생성/정리 확인. 기존 rules 회귀가 재귀 예외·대칭·200번째 승리/금수 우선을 검증한다.
-- Python 시작→완료 두 판(seed17), 총19수/2승리·독립 재생 일치. 테스트에서 동일 시드 두 실행의 JSON 일치, 완료 재개0수/중복 집계 없음, 설정 변경 재개 거부, cap·Ctrl+C·주입 실행 오류/시작 실패 분리와 손상 파일 거부 확인. native 커밋 직후 취소를 주입해 마지막 수 보존도 확인.
-- 최종 코드 소표본 처리량: Intel Core Ultra5 226V, 논리CPU8, 단일 프로세스 순차/affinity 고정 없음. 30회 평균 ms: 초기화0.00848, 상태0.01421, 관측0.05751, 준비3수 mask0.06353/위협8수0.16688, step0.02711, clone+dispose0.00556. 무작위4판/531수/4승리 저장·재생 포함1.01438초(523.47수/초·3.943판/초). 원본 결과 runs/benchmark-final/benchmark.json은 생성물로 Git 제외. 소수 표본이며 장시간/밀집 최악 성능 보증 아님.
-- 초기 sandbox 임시 디렉터리에서 Python tempfile 생성이 반복 대기해 중단하고 테스트 임시 경로를 writable build/python-tests로 수정했다. 기존 충돌 alias는 삭제하지 않고 새 부모 경로로 빌드했다. Ninja의 한글 의존성 캐시는 기존 build.ps1 방식으로 재생성했다. 최종 검사에는 이 문제 없음.
+기존 출력이 있으면 fixtures/data/train은 새 폴더를 사용한다. 기존 완료 대국은 같은 설정/소스/모델해시에서 건너뛴다. 첫 설치는 CPU index의 torch를 설치해 버전을 확인한 뒤 requirements로 고정/재확인했다. 초기 ensurepip/TEMP·네트워크 sandbox 실패는 writable TEMP와 승인된 네트워크 설치로 해결했다. NumPy 미설치 import 경고는 남지만 numpy API를 쓰지 않으며 모든 검증이 통과했다. 학습 저장 중 실패를 주입해 기존 체크포인트 보존도 확인했다.
 
-## 미검증·제약·다음 작업 하나
+- 기본 C++/GUI/DLL 빌드·install 성공. CTest90개 통과16.97초(내부 headless Python10개 포함).
+- optional 학습 unittest5개 통과15.678초. 좌표/흑백·가치 부호, D4 관측/행동/마스크와 C++ 환경 대조, 권리/중복/분할·불법 정책 거부, 모델 형상/유한성·softmax, 실제 갱신/과적합·가치 미적격 손실 제외, 저장/로드·연속2epoch=1epoch+재개 가중치/optimizer/RNG/지표 일치, RL 초기 가중치/옵티마이저 선택, 손상/계약/형상 거부·저장실패 보존, 모델 완결 대국·재생·로드/NaN/마스크오류·동점 처리를 확인했다.
 
-Linux/Colab/MSVC/다른 Python·클린 Windows·장시간/대량/병렬·dense 최악 재귀·실제 심판 새 실행·실제 Rapfi/GUI 수동 실행은 검증하지 않았다. 과거 GUI/외부 엔진 미검증은 기존 verification 문서를 보존한다. 현재 프로필은 기존 고정200수이며 대회 시계/자원 프로필 분리는 아직 없다. 공식 준비 데이터/권리는 미확보, 자체 fixture는 공식 데이터가 아니다. 합법 수0은 blocked/aborted로 격리하고 draw/패스를 추가하지 않는다.
+## 미검증·다음 작업 하나·Git
 
-재개는 동일 config/commit/소스·DLL해시에서 완료 대국을 검증 후 건너뛰며 미완료는 attempt 보존 후 처음부터 재실행한다. 동시 output 공유는 미지원이다. 강제 종료/전원 손실에서 진행 중 대국은 유실될 수 있다. 정상 완료 파일은 남으며 임시/손상 파일을 정상 집계하지 않는다. 샘플 정제/권리·라벨·분할은 아직 P2 후속이다. trace 저장은 강함/학습 완료/대회 적합성 증명이 아니다.
+실제 고수 기보/권리 확인 데이터·외부 기보 파서/기권 등 사건·엄격 누출 제거/실력 향상, Linux/Colab/다른Python/GPU/장시간, 제출 추론 런타임·Gomocup 수신/대회 조건은 미검증/미구현이다. Rapfi/GUI 수동 검증은 재실행하지 않았다. 과거 제한은 이전 문서에 보존했다. 이번은 현재15x15/고정200수 프로필만 사용했다.
 
-**다음 작업 하나: 이 환경 위에 작은 정책·가치 모델의 지도학습과 추론 연결.** 데이터 권리·라벨/분할·중복과 모델 계약/도구 선택을 먼저 확인한다. 이번 요청으로 자동 착수하지 않는다.
+**다음 작업 하나는 정책·가치 모델에 MCTS 연결**이며 이번에 자동 시작하지 않는다. 현재 모델은 기능 검증용이라는 한계를 유지한다.
 
-## Git·기준과 승인/중단 지점
-
-시작 d7b3142, codex/learned-policy-foundation, 추적/미추적 변경 없음. fetch 성공 후 origin/main보다 기존 이력10커밋 앞/뒤0을 확인했다. main으로 되돌려 미통합 구현을 잃지 않도록 이 이력에서 codex/python-headless-games를 만들었다. 기존 브랜치·이력·원격은 보존하며 main 통합/강제 푸시/브랜치 삭제 없음.
-
-관련 소스·작은 테스트·문서만 커밋하고 같은 브랜치에 일반 푸시한다. build/dist/runs/외부 바이너리·가중치/임시물은 제외한다. 최종 커밋 ID와 실제 푸시 여부는 최종 보고에 기록하며 이를 문서에 넣기 위한 반복 커밋은 하지 않는다. 문서 상대 링크309개 누락0·git diff --check 통과를 확인했다. 현재 승인 범위의 완료/검증/문서·Git 저장 후 중단하며 다음 모델 작업은 착수하지 않는다.
+시작65037a5/codex/python-headless-games, 추적/미추적 변경 없음. fetch 후 main과 기존 의존 이력11커밋앞/뒤0을 확인했다. 미통합 기반을 보존해 codex/supervised-policy-value에서 구현했다. 기존 브랜치/이력/외부 바이너리는 보존했고 강제 푸시/삭제/main 통합은 하지 않았다. 관련 코드·설정·작은 테스트/검증·문서만 커밋·일반 푸시한다. 최종 ID/실제 푸시 결과는 완료 보고에 남긴다. 문서 상대 링크329개 누락0·Python compileall·git diff --check 통과를 확인했다. 다음 모델/탐색 작업을 자동 승인으로 해석하지 않는다.
