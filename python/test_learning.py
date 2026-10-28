@@ -15,6 +15,7 @@ from omok_learning.model import PolicyValueNet,ModelConfig,checked_outputs,proba
 from omok_learning.train import TrainConfig,train,losses
 from omok_learning.checkpoint import atomic_save,payload,load,initialize_for_rl,content_hash
 from omok_learning.player import ModelPlayer
+from omok_learning.mcts import PUCTPlayer,SearchConfig
 
 ROOT=Path(__file__).resolve().parents[1]
 TEMP=ROOT/"build/learning-tests"
@@ -160,6 +161,33 @@ class LearningTests(unittest.TestCase):
             e.step(0)
             with patch.object(PolicyValueNet,"forward",return_value=(torch.zeros(1,225),torch.zeros(1,1))):
                 self.assertEqual(ModelPlayer(path).select(e,e.mask())["action"],1)
+
+    def test_puct_real_model_load_once_eval_mode_and_reproducibility(self):
+        path=self.root/"puct-model.pt"
+        torch.manual_seed(41)
+        atomic_save(path,payload(PolicyValueNet(),"inference",dict(purpose="PUCT interface test")))
+        evaluator=ModelPlayer(path)
+        with patch("omok_learning.player.load",wraps=load) as loader:
+            evaluator.prepare()
+            forward=evaluator.model.forward
+            modes=[]
+            def checked_forward(x):
+                modes.append((evaluator.model.training,torch.is_grad_enabled()))
+                return forward(x)
+            with Environment(compact="h8i8g9") as env,patch.object(evaluator.model,"forward",side_effect=checked_forward):
+                before=env.snapshot();mask=env.mask()
+                priors=evaluator.evaluate(env,mask)["priors"]
+                self.assertAlmostEqual(sum(priors),1,places=5)
+                self.assertTrue(all(p==0 for p,legal in zip(priors,mask) if not legal))
+                player=PUCTPlayer(evaluator,SearchConfig(3))
+                first=player.select(env,mask);second=player.select(env,mask)
+                self.assertEqual(first["root_visits"],second["root_visits"])
+                self.assertEqual(first["root_edge_q"],second["root_edge_q"])
+                self.assertEqual(first["search"]["network_evaluations"],4)
+                self.assertEqual(first["model_load_ms"],0)
+                self.assertEqual(env.snapshot(),before)
+            self.assertEqual(loader.call_count,1)
+            self.assertTrue(modes and all(mode==(False,False) for mode in modes))
 
 
 if __name__=="__main__":unittest.main()

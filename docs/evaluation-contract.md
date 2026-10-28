@@ -1,6 +1,6 @@
 # 외부 벤치마크·실력·제출 평가 계약
 
-2026-10-28 설계. **범용 평가 실행기·아래 통계/프로필 전환 기능은 미구현**이다. 기존 Rapfi probe/GUI 검증을 재현 가능한 반복 평가 완료로 보지 않는다. [Rapfi 어댑터](rapfi-integration.md)의 실제 통신/자원/오류 정책과 [환경 사건 구분](headless-environment-contract.md)을 재사용한다.
+2026-10-28 설계. **범용 평가 실행기·아래 통계/프로필 전환 기능은 미구현**이다. 현재 고정 simulation의 [PUCT/정책 단독 소규모 개발 비교](puct-search.md)는 구현했다. 동일 시간/범용 외부 평가·아래 통계 프로필 전체는 미구현이며 기존 Rapfi probe/GUI 검증을 반복 평가 완료로 보지 않는다. [Rapfi 어댑터](rapfi-integration.md)의 실제 통신/자원/오류 정책과 [환경 사건 구분](headless-environment-contract.md)을 재사용한다.
 
 ## 평가 상대와 데이터의 역할
 

@@ -1,0 +1,6 @@
+{
+  "simulations": 16,
+  "c_puct": 1.5,
+  "seed": 23,
+  "tie_break": "index"
+}

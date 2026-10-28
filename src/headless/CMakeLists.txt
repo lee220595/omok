@@ -11,5 +11,9 @@ if(BUILD_TESTING)
             -s "${PROJECT_SOURCE_DIR}/python" -p test_headless.py -v)
         set_tests_properties(headless.python PROPERTIES TIMEOUT 180 LABELS headless
             ENVIRONMENT "PYTHONPATH=${PROJECT_SOURCE_DIR}/python;OMOK_HEADLESS_LIBRARY=$<TARGET_FILE:omok_headless>")
+        add_test(NAME headless.puct COMMAND "${Python3_EXECUTABLE}" -m unittest discover
+            -s "${PROJECT_SOURCE_DIR}/python" -p test_mcts.py -v)
+        set_tests_properties(headless.puct PROPERTIES TIMEOUT 180 LABELS "headless;puct"
+            ENVIRONMENT "PYTHONPATH=${PROJECT_SOURCE_DIR}/python;OMOK_HEADLESS_LIBRARY=$<TARGET_FILE:omok_headless>")
     endif()
 endif()

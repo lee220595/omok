@@ -1,6 +1,6 @@
 # 학습·평가 기반의 공통 원칙과 계약 안내
 
-2026-10-28. 최종 목표/우선순위는 [AGENTS](../AGENTS.md), 단계와 완료 기준은 [개발 계획](development-plan.md), 현재 작업/실제 검증은 [인계](handoff.md)를 따른다. 아래는 설계 계약이다. [Python 무화면 환경·자동 대국·최소 기록/재생](python-headless.md)은 구현했으며 후속 [작은 정책·가치 지도학습/체크포인트·추론 대국](supervised-learning.md)은 자체 fixture에서 기능 검증했다. 실제 기보 정제/실력 평가·MCTS/RL·자체 엔진 수신·전체 평가는 미완료다.
+2026-10-28. 최종 목표/우선순위는 [AGENTS](../AGENTS.md), 단계와 완료 기준은 [개발 계획](development-plan.md), 현재 작업/실제 검증은 [인계](handoff.md)를 따른다. 아래는 설계 계약이다. [Python 무화면 환경·자동 대국·최소 기록/재생](python-headless.md)은 구현했으며 후속 [작은 정책·가치 지도학습/체크포인트·추론 대국](supervised-learning.md)은 자체 fixture에서 기능 검증했다. 같은 모델의 [순차 PUCT/정책 비교](puct-search.md)도 기능 검증했으며 실제 기보 정제/실력 평가·RL·자체 엔진 수신·전체 평가는 미완료다.
 
 ## 공통 경계
 

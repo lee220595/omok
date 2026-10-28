@@ -113,7 +113,8 @@ def run(output, *, games=2, seed=0, players=("ordered", "random"), compact="",
                 except KeyboardInterrupt:
                     finish(env, record, "interrupted", dict(reason="keyboard_interrupt",pending=pending))
                 except Exception as exc:
-                    finish(env, record, "error", dict(reason=type(exc).__name__, message=str(exc),pending=pending))
+                    finish(env, record, "error", dict(reason=type(exc).__name__, message=str(exc),pending=pending,
+                        details=getattr(exc,"details",None)))
                 save(path, record)
                 replay(record, library)
         except (KeyboardInterrupt, Exception) as exc:

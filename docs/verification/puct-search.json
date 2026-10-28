@@ -1,0 +1,558 @@
+{
+  "date": "2026-10-29",
+  "scope": "PUCT functional development comparison; not strength/Elo evidence",
+  "hardware": "Intel Core Ultra 5 226V; 8 logical CPUs; CPU one torch thread, no affinity pinning",
+  "starting_code": "e2b3c61d291e183d75f0b6e818a970fe12110b96",
+  "handoff_difference": "none for stated implemented features; checkpoint/DLL present and core paths rerun",
+  "tests": {
+    "ctest": 91,
+    "ctest_failed": 0,
+    "ctest_seconds": 8.9,
+    "controlled_puct_tests": 8,
+    "optional_learning_tests": 6,
+    "optional_learning_failed": 0,
+    "optional_learning_seconds": 6.108
+  },
+  "comparison": {
+    "manifest": {
+      "schema": "omok-puct-comparison-v1",
+      "code": {
+        "commit": "e2b3c61d291e183d75f0b6e818a970fe12110b96",
+        "dirty": true,
+        "source_sha256": "cd78b99c41b04db4c06364c39616c992c6b600724ad5f97d0556dbf0a4f3de5d"
+      },
+      "model": {
+        "kind": "policy-model-v1",
+        "path": "C:\\Users\\leesn\\Documents\\ChatGPT\\오목 프로젝트\\runs\\sl-release-trained\\best.pt",
+        "sha256": "a7f9678942246028624ce694c35d16fc9d0e08b855f3fc385f4cac43b75be310",
+        "selection": "masked-argmax-lowest-index-tie",
+        "value_usage": "analysis-only"
+      },
+      "configs": [
+        {
+          "simulations": 1,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        {
+          "simulations": 8,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        {
+          "simulations": 32,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        }
+      ],
+      "games_per_start": 2,
+      "seed": 23,
+      "starts": [
+        "",
+        "h8i8g9"
+      ],
+      "samples": 3,
+      "os": "Windows-11-10.0.26200-SP0",
+      "python": "3.13.7",
+      "torch": "2.14.1+cpu",
+      "threads": 1,
+      "device": "cpu",
+      "root_noise": false,
+      "tree_reuse": false,
+      "role": "development-functional-comparison-not-strength",
+      "time_budget_comparison": false,
+      "native_sha256": "6379e3c1f231ec5c6913198d4b2f94351a122511ee98731de7bc0faa4b679408"
+    },
+    "preparation": {
+      "model_load_ms": 8.035700069740415,
+      "model_load_and_warmup_ms": 13.443700037896633,
+      "warmup_calls": 3,
+      "warmup_ms": [
+        2.7068000053986907,
+        0.8675999706611037,
+        0.5921999691054225
+      ],
+      "process_import_excluded": true
+    },
+    "positions": [
+      {
+        "start": {
+          "compact": "",
+          "source_id": "puct-dev-start-0-v1"
+        },
+        "kind": "policy",
+        "samples": 3,
+        "mean_ms": 0.8808999555185437,
+        "network_evaluations_per_move": 1,
+        "actions": [
+          14,
+          14,
+          14
+        ]
+      },
+      {
+        "start": {
+          "compact": "",
+          "source_id": "puct-dev-start-0-v1"
+        },
+        "kind": "puct",
+        "config": {
+          "simulations": 1,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "samples": 3,
+        "mean_ms": 1.7755333489427965,
+        "network_evaluations_per_move": 2,
+        "simulations_per_move": 1,
+        "mean_transitions": 1,
+        "actions": [
+          14,
+          14,
+          14
+        ],
+        "reproducible_visits": true
+      },
+      {
+        "start": {
+          "compact": "",
+          "source_id": "puct-dev-start-0-v1"
+        },
+        "kind": "puct",
+        "config": {
+          "simulations": 8,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "samples": 3,
+        "mean_ms": 6.311933354785045,
+        "network_evaluations_per_move": 9,
+        "simulations_per_move": 8,
+        "mean_transitions": 8,
+        "actions": [
+          14,
+          14,
+          14
+        ],
+        "reproducible_visits": true
+      },
+      {
+        "start": {
+          "compact": "",
+          "source_id": "puct-dev-start-0-v1"
+        },
+        "kind": "puct",
+        "config": {
+          "simulations": 32,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "samples": 3,
+        "mean_ms": 25.44723334722221,
+        "network_evaluations_per_move": 33,
+        "simulations_per_move": 32,
+        "mean_transitions": 32,
+        "actions": [
+          14,
+          14,
+          14
+        ],
+        "reproducible_visits": true
+      },
+      {
+        "start": {
+          "compact": "h8i8g9",
+          "source_id": "puct-dev-start-1-v1"
+        },
+        "kind": "policy",
+        "samples": 3,
+        "mean_ms": 0.6373666304474076,
+        "network_evaluations_per_move": 1,
+        "actions": [
+          114,
+          114,
+          114
+        ]
+      },
+      {
+        "start": {
+          "compact": "h8i8g9",
+          "source_id": "puct-dev-start-1-v1"
+        },
+        "kind": "puct",
+        "config": {
+          "simulations": 1,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "samples": 3,
+        "mean_ms": 2.116233304453393,
+        "network_evaluations_per_move": 2,
+        "simulations_per_move": 1,
+        "mean_transitions": 1,
+        "actions": [
+          114,
+          114,
+          114
+        ],
+        "reproducible_visits": true
+      },
+      {
+        "start": {
+          "compact": "h8i8g9",
+          "source_id": "puct-dev-start-1-v1"
+        },
+        "kind": "puct",
+        "config": {
+          "simulations": 8,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "samples": 3,
+        "mean_ms": 8.543700018587211,
+        "network_evaluations_per_move": 9,
+        "simulations_per_move": 8,
+        "mean_transitions": 16,
+        "actions": [
+          114,
+          114,
+          114
+        ],
+        "reproducible_visits": true
+      },
+      {
+        "start": {
+          "compact": "h8i8g9",
+          "source_id": "puct-dev-start-1-v1"
+        },
+        "kind": "puct",
+        "config": {
+          "simulations": 32,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "samples": 3,
+        "mean_ms": 29.293266668294866,
+        "network_evaluations_per_move": 33,
+        "simulations_per_move": 32,
+        "mean_transitions": 70,
+        "actions": [
+          114,
+          114,
+          114
+        ],
+        "reproducible_visits": true
+      }
+    ],
+    "results": [
+      {
+        "start": {
+          "compact": "",
+          "source_id": "puct-dev-start-0-v1"
+        },
+        "config": {
+          "simulations": 1,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "summary": {
+          "counts": {
+            "completed": 2,
+            "won": 2
+          },
+          "winners": {
+            "1": 1,
+            "0": 1
+          },
+          "elapsed_seconds": 0.08887480001430959,
+          "new_moves": 48,
+          "selection_samples": 48,
+          "mean_selection_ms": 1.0982791645801626
+        },
+        "puct_outcomes": {
+          "loss": 1,
+          "win": 1
+        },
+        "failures": [],
+        "pairs_complete": true,
+        "trace_replay_verified": true,
+        "puct_moves": 24,
+        "policy_moves": 24,
+        "mean_puct_ms": 1.6401083315334593,
+        "mean_policy_ms": 0.5226083303568885,
+        "mean_network_evaluations": 1.9583333333333333,
+        "total_network_evaluations": 47,
+        "total_simulations": 24,
+        "mean_transitions": 1
+      },
+      {
+        "start": {
+          "compact": "",
+          "source_id": "puct-dev-start-0-v1"
+        },
+        "config": {
+          "simulations": 8,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "summary": {
+          "counts": {
+            "completed": 2,
+            "won": 2
+          },
+          "winners": {
+            "0": 2
+          },
+          "elapsed_seconds": 0.20185700000729412,
+          "new_moves": 45,
+          "selection_samples": 45,
+          "mean_selection_ms": 3.7040377837709255
+        },
+        "puct_outcomes": {
+          "win": 2
+        },
+        "failures": [],
+        "pairs_complete": true,
+        "trace_replay_verified": true,
+        "puct_moves": 23,
+        "policy_moves": 22,
+        "mean_puct_ms": 6.429334773439104,
+        "mean_policy_ms": 0.7621954586780206,
+        "mean_network_evaluations": 8.347826086956522,
+        "total_network_evaluations": 192,
+        "total_simulations": 184,
+        "mean_transitions": 10.73913043478261
+      },
+      {
+        "start": {
+          "compact": "",
+          "source_id": "puct-dev-start-0-v1"
+        },
+        "config": {
+          "simulations": 32,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "summary": {
+          "counts": {
+            "completed": 2,
+            "won": 2
+          },
+          "winners": {
+            "0": 2
+          },
+          "elapsed_seconds": 0.992293499992229,
+          "new_moves": 41,
+          "selection_samples": 41,
+          "mean_selection_ms": 22.842914632680575
+        },
+        "puct_outcomes": {
+          "win": 2
+        },
+        "failures": [],
+        "pairs_complete": true,
+        "trace_replay_verified": true,
+        "puct_moves": 21,
+        "policy_moves": 20,
+        "mean_puct_ms": 43.66447141815332,
+        "mean_policy_ms": 0.7527850044425577,
+        "mean_network_evaluations": 31.142857142857142,
+        "total_network_evaluations": 654,
+        "total_simulations": 672,
+        "mean_transitions": 50.142857142857146
+      },
+      {
+        "start": {
+          "compact": "h8i8g9",
+          "source_id": "puct-dev-start-1-v1"
+        },
+        "config": {
+          "simulations": 1,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "summary": {
+          "counts": {
+            "completed": 2,
+            "won": 2
+          },
+          "winners": {
+            "0": 1,
+            "1": 1
+          },
+          "elapsed_seconds": 0.06851010001264513,
+          "new_moves": 36,
+          "selection_samples": 36,
+          "mean_selection_ms": 1.0241777862473909
+        },
+        "puct_outcomes": {
+          "win": 1,
+          "loss": 1
+        },
+        "failures": [],
+        "pairs_complete": true,
+        "trace_replay_verified": true,
+        "puct_moves": 18,
+        "policy_moves": 18,
+        "mean_puct_ms": 1.505577768613067,
+        "mean_policy_ms": 0.508000013521976,
+        "mean_network_evaluations": 1.9444444444444444,
+        "total_network_evaluations": 35,
+        "total_simulations": 18,
+        "mean_transitions": 1
+      },
+      {
+        "start": {
+          "compact": "h8i8g9",
+          "source_id": "puct-dev-start-1-v1"
+        },
+        "config": {
+          "simulations": 8,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "summary": {
+          "counts": {
+            "completed": 2,
+            "won": 2
+          },
+          "winners": {
+            "0": 1,
+            "1": 1
+          },
+          "elapsed_seconds": 0.14851810003165156,
+          "new_moves": 32,
+          "selection_samples": 32,
+          "mean_selection_ms": 3.706250001414446
+        },
+        "puct_outcomes": {
+          "win": 1,
+          "loss": 1
+        },
+        "failures": [],
+        "pairs_complete": true,
+        "trace_replay_verified": true,
+        "puct_moves": 16,
+        "policy_moves": 16,
+        "mean_puct_ms": 6.648037480772473,
+        "mean_policy_ms": 0.70433750806842,
+        "mean_network_evaluations": 8.25,
+        "total_network_evaluations": 132,
+        "total_simulations": 128,
+        "mean_transitions": 11.5625
+      },
+      {
+        "start": {
+          "compact": "h8i8g9",
+          "source_id": "puct-dev-start-1-v1"
+        },
+        "config": {
+          "simulations": 32,
+          "c_puct": 1.5,
+          "seed": 23,
+          "tie_break": "index"
+        },
+        "summary": {
+          "counts": {
+            "completed": 2,
+            "won": 2
+          },
+          "winners": {
+            "0": 1,
+            "1": 1
+          },
+          "elapsed_seconds": 0.49165440001524985,
+          "new_moves": 32,
+          "selection_samples": 32,
+          "mean_selection_ms": 14.221418754459592
+        },
+        "puct_outcomes": {
+          "win": 1,
+          "loss": 1
+        },
+        "failures": [],
+        "pairs_complete": true,
+        "trace_replay_verified": true,
+        "puct_moves": 16,
+        "policy_moves": 16,
+        "mean_puct_ms": 27.63386875449214,
+        "mean_policy_ms": 0.6392124996636994,
+        "mean_network_evaluations": 29.0625,
+        "total_network_evaluations": 465,
+        "total_simulations": 512,
+        "mean_transitions": 53.9375
+      }
+    ]
+  },
+  "aggregates": [
+    {
+      "simulations": 1,
+      "games": 4,
+      "outcomes": {
+        "loss": 2,
+        "win": 2
+      },
+      "puct_moves": 42,
+      "policy_moves": 42,
+      "mean_puct_ms": 1.5824523759961484,
+      "mean_policy_ms": 0.516347623141926,
+      "mean_network_evaluations": 1.9523809523809523,
+      "total_simulations": 42,
+      "total_network_evaluations": 82
+    },
+    {
+      "simulations": 8,
+      "games": 4,
+      "outcomes": {
+        "win": 3,
+        "loss": 1
+      },
+      "puct_moves": 39,
+      "policy_moves": 38,
+      "mean_puct_ms": 6.519058961063051,
+      "mean_policy_ms": 0.7378342163160836,
+      "mean_network_evaluations": 8.307692307692308,
+      "total_simulations": 312,
+      "total_network_evaluations": 324
+    },
+    {
+      "simulations": 32,
+      "games": 4,
+      "outcomes": {
+        "win": 3,
+        "loss": 1
+      },
+      "puct_moves": 37,
+      "policy_moves": 36,
+      "mean_puct_ms": 36.732318914948486,
+      "mean_policy_ms": 0.702308335651954,
+      "mean_network_evaluations": 30.243243243243242,
+      "total_simulations": 1184,
+      "total_network_evaluations": 1119
+    }
+  ],
+  "trace_accounting_checks": 118,
+  "limitations": [
+    "same weak authored-fixture CNN; 12 games/2 start positions, no strength or Elo inference",
+    "only fixed simulations; no hard time budget, no fixed-time equivalence claim",
+    "Windows11/Python3.13.7/torch2.14.1+cpu only; no GPU/Linux/Colab",
+    "no tree reuse, batching, parallelism, transpositions, root noise or candidate pruning",
+    "finite PUCT budget does not guarantee discovery of all tactical moves",
+    "model and output traces are local ignored artifacts; hashes/configs are preserved here"
+  ],
+  "work_dates": "2026-10-28..2026-10-29"
+}

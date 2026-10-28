@@ -1,5 +1,7 @@
 # 기반 기술 선택
 
+2026-10-29 PUCT 후속: 기존 ModelPlayer의 checked 평가 경계를 공유하는 stdlib 기반 순차 탐색·매 simulation C++ clone/경로 재적용·전체 합법 후보를 선정했다. 새로운 의존성/모델 학습 없이 정확성 기준을 확보했고, 측정 없는 트리 재사용/병렬/배치/전이표는 도입하지 않았다. [초기 방문·관점·예산과 실제 검증](puct-search.md)을 따른다.
+
 2026-10-28 SL 후속: 사용자 지정 PyTorch2.14.1+cpu를 선택 가상환경에 설치했다. 작은 CNN1,050파라미터/AdamW·CE+MSE/StepLR·JSON 샘플/분할·구분한 텐서 체크포인트와 CPU 추론 플레이어를 검증했다. [선정 근거·실제 실행·라이선스·한계](supervised-learning.md)를 따른다. 제출 추론 런타임·GPU·MCTS/RL은 이 선택으로 확정하지 않는다.
 
 2026-10-28 후속 구현: 자동 대국 연결은 선택적 C ABI DLL + Python 표준 ctypes/JSON을 선정했다. 추가 pip 패키지 없이 동일 프로세스에서 C++ Controller를 재사용하며 기본 빌드는 Python을 요구하지 않는다. 프레임워크/추론 도구 선정과는 별개다. [실제 API·검증·측정](python-headless.md)을 따른다.
