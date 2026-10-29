@@ -1,65 +1,64 @@
 # 오목 프로젝트 개발 인계
 
-갱신2026-10-29, 작업2026-10-28~29. 이번 승인 범위는 **기존 CNN의 P/v를 쓰는 순차 PUCT·실행기/기록 연결·정확성/고정 예산 비교·문서 갱신**이다. 모델 가중치/SL 데이터는 변경하지 않았고 RL 업데이트·Gumbel/UCT 비교 엔진·외부 기보·Rapfi·GUI·Gomocup 패키징·다른 규칙은 구현/실행하지 않았다. 다음 작업도 자동 시작하지 않는다. 이전 [SL 인계](handoff-before-puct-2026-10-29.md)를 보존한다.
+갱신2026-10-29. **이번 승인 범위는 두 감시자 기반 학습·평가 설계의 문서/계약 갱신**이다. 감시자 코드·RL 업데이트·새 학습/평가 실행은 하지 않았다. 기존 실행/중단 승인 경계를 유지하고 다음 구현도 자동 시작하지 않는다. 직전 [PUCT 인계](handoff-before-monitoring-2026-10-29.md)를 원문 그대로 보존했다.
 
-## 시작 상태와 현재 코드
+## 실제 기준과 사용자 설명 대조
 
-시작e2b3c61/codex/supervised-policy-value, 추적/미추적 변경 없음. AGENTS/README/인계·개발 계획·모델/환경/평가 계약과 실제 구현/테스트를 대조했다. 제시된 상태(기존 무화면/clone·SL/체크포인트·모델 대국/trace·쉬운 자체10판95수 모델·MCTS/RL 미구현)와 차이는 없었으며 checkpoint/DLL도 존재했다. fetch 후 main과 기존 의존 이력12커밋앞/뒤0을 확인하고 이 기반에서 codex/puct-search를 만들었다. main 통합/기존 브랜치 삭제/강제 푸시는 하지 않는다.
+기준 HEAD는 `2dc4eabc46947b42dba5a4cfd3de51818fd5a263`, 브랜치는 `codex/puct-search`다. 시작 시 추적/미추적 변경 없었고 fetch 후 원격 작업 브랜치와 앞/뒤0을 확인했다. main/origin/main은 `a15a871491b74c1685d1dad072c9edb392abc6f7`이다. 미통합 SL/PUCT 의존 이력을 보존해 같은 작업 브랜치에서 문서만 수정한다. main 통합/강제 푸시/브랜치 삭제/기존 변경 폐기는 하지 않는다.
 
-- python/omok_learning/mcts.py: stdlib 기반 PUCT 코어/평가기 경계, Node/Edge의P/N/W/Q, 실제 actor 관점 backup/실제 종료값, 전체 합법 후보, root 방문/분포·예산/NN/전이/clone 통계와 PUCTPlayer. 매 simulation C++ clone/경로 착수로 실제 환경을 바꾸지 않는다.
-- player.py: prepare로 모델1회 로드, evaluate로 기존 checked masked softmax/current-actor v를 정책 단독과 PUCT가 공유한다. eval/inference_mode 유지, 로드 시간을 선택 시간과 구분한다.
-- evaluate.py: 기존 policy/ordered/random/self 보존, --player puct/--opponent policy와 simulation/c_puct/search-seed/tie/시작 플래그 추가. compare_search.py: 시작 전 manifest 고정→같은 checkpoint 평가기 공유→고정 위치 측정→2시작·흑백 교대 비교→trace 독립 재생/통계 검사·진행/최종 보고 저장.
-- omok_env/runner.py: SearchError.details를 기존 오류 진단에 보존한다. 기존 trace v1의 실제 수순/종료/재개 의미는 유지하고 action.inference에 탐색 메타데이터를 추가했다. C++/GUI/규칙 소스는 변경하지 않았다.
-- python/test_mcts.py의 통제 평가기 검사8개, test_learning.py의 실제 모델 PUCT/로드1회/eval 검사1개 추가(선택 학습 총6개), headless CMake에 torch 없는 PUCT CTest 등록, configs/puct-cpu.json과 [실행 안내](puct-search.md)·[검증 JSON](verification/puct-search.json)·README/계약/계획을 갱신했다.
+사용자가 언급한 ‘handoff(9)’의 핵심인 **SL·추론·순차 PUCT 구현, RL 업데이트 미구현**은 현재 docs/handoff.md와 실제 코드에 일치한다. 별도 번호9 파일을 확보/검증했다고 주장하지 않는다. 예전 중단한 최초 AI 작업 이후 다른 작업에서 무화면/SL/PUCT 구현이 추가됐으므로 오래된 ‘.venv 생성까지만’ 상태를 현황으로 쓰지 않는다.
 
-## 주요 설계·안전성
+## 재사용할 실제 코드와 부족한 부분
 
-선택은 Q+c_puct*P*sqrt(N_parent)/(1+N_edge), 미방문Q0, N_parent=완료 outgoing edge 방문 합이다. N_parent0일 때 모든 점수0이므로 높은P로 초기 선택한다. 점수/최종 방문 동률은 높은P 후 기본 작은action, 선택적으로 seeded tie다. 기본 seed는 기록되지만 index 모드의 수 선택에 영향을 주지 않는다. seed 모드는 search마다 지역 RNG를 초기화하며 전역 RNG/루트 노이즈를 사용하지 않는다.
+| 영역 | 실제 구현/재사용 | 아직 없는 것/검증 한계 |
+|---|---|---|
+| C++ 규칙/대국·Python 환경 | rules::evaluate/match::place, src/headless/bridge.cpp의 mask/step, Environment snapshot/mask/observation/clone/Token | Python 독자 판정 불필요. 공통 감시 이벤트/마스킹 전 불법 질량 기록은 없음 |
+| 모델/SL/체크포인트 | PolicyValueNet·checked_outputs/masked_logits, train의 loss/epoch metrics, checkpoint.load/atomic_save/initialize_for_rl | heartbeat/step 정체·gradient/optimizer 종합 감시, RL stage 저장/재개/update 미구현 |
+| 순차 PUCT | mcts.search의 clone·전체 합법 후보·actor backup/실제 종료·고정 S·root 방문/NN/terminal 통계, ModelPlayer.evaluate 재사용 | 고정 시간/hard deadline·탐험/경험/RL 목표 생성·감시 실행기 없음 |
+| 대국/기록/재개 | runner/records의 atomic JSON trace·독립 재생·manifest/완료 건너뛰기·미완료 attempt 보존 | 동시 output 공유/중간 대국·검색 복구 미지원. 재생은 탐색 메타데이터 전체를 검사하지 않음 |
+| 비교/회귀 | compare_search의 같은 모델 policy/PUCT·흑백 교대·일부 예산 검사, 기존 CTest/test_headless/test_learning/test_mcts | 검토된 실제 CNN 전술 세트·CI/통계 승격·고정 후보 등록·중복 평가 통합 감시 미구현 |
 
-Edge Q/W는 부모 actor 관점, 비종료 leaf v는 leaf actor 관점이다. 각 ancestor actor와 비교해 부호를 바꾸며 준비 돌 수의 홀짝으로 추정하지 않는다. 종료 leaf는 NN 대신 C++ winner/draw와 보존된 actor로±1/0을 계산한다. aborted/blocked/실행 실패를0으로 backup하지 않는다.
+현재 PUCT의 성공 정의는 root expansion 제외 S회 완료 순회, root 방문 합=S, NN+terminal_hits=S+1, clone=S+1이다. terminal_hits는 고유 종료 국면 수가 아니라 NN을 생략한 leaf 도달 횟수다. transitions는 경로 전체 착수 합이다. 실패 중 부분 통계에 성공 등식을 강제하지 않는다. 기존 정의를 바꾸지 않았다.
 
-루트 expansion1회는 simulation에 포함하지 않는다. S simulation은 루트를 출발해 leaf를 평가/역전파한 완료 순회S회다. root N합=S, NN evaluations+terminal hits=S+1, clone=S+1이다. 라이브 snapshot은 읽기만 하고 base clone+simulation clone만 변경한다. evaluator가 clone을 바꾸거나 stale Token/불법 확률/NaN을 반환하면 오류다. 원본 환경 불변을 정상/예외 후 확인한다. 상위k/근접 후보·금수 판정 생략·트리 재사용·배치/병렬/전이표/undo 캐시는 넣지 않았다. 시간 제한은 이번 미구현이며 고정 simulation만 지원한다.
+확인한 문서상의 오래된 요약 차이는 AGENTS의 ‘무화면 인터페이스 계획/AI 대 AI·기보 모두 미구현’과 개발 계획 표의 ‘MCTS 미구현’이었다. 실제 Python 환경/순차 모델 대국/JSON trace·PUCT 구현에 맞게 갱신하고 GUI AI 대 AI/범용 기보·제출 수신기/전체 평가 미완료와 분리했다. 실제 코드 변경은 없다.
 
-## 실제 검증과 비교
+## 문서 변경
 
-Windows11 x64 10.0.26200·Python3.13.7 x64·torch2.14.1+cpu, Intel Core Ultra5 226V/논리CPU8. Torch CPU1스레드·deterministic algorithms, affinity고정 없음. 기존 GCC13.3.0/CMake3.29.3/Ninja1.12.1 빌드/install 성공. 새 의존성 설치 없음. NumPy 미설치 import 경고는 기존대로 남지만 numpy API를 쓰지 않으며 모든 실행이 성공했다.
+- [AGENTS](../AGENTS.md)에 두 감시자/보상 책임·동일 환경/Token·독립 정답·대응 한도·고정 평가 원칙을 지속 지침으로 추가했다.
+- [감시 계약](monitoring-contract.md)을 새로 작성했다. A 규칙 심판은 C++ 판정/마스크/회귀를 재사용하고 B는 모델/수치/진행·전술/대국/비용·기록/체크포인트를 관찰한다. 별도 AI 모델 두 개/분산 서비스가 아니다. 13개 규칙에 ID/버전·시점/입력·위반·심각도/대상·대응·증거·수용 검증을 정의했다.
+- [보상 계약](reward-contract.md)을 새로 작성했다. 승+1/패·금수패-1/규칙 draw0의 결과 매핑 권장과 기존 board-outcome-v1 가치 자격 보류를 구분한다. 임의 -100·자동 LR/보상 변경은 없다. 후속 pi=root 방문/S, actor 관점 z·SL 초기화/RL 재개 연결 조건을 명시했다.
+- [평가](evaluation-contract.md)에 규칙/실행/전술/대국/처리량 분리·전술 문제 필드·기보 재생/메타데이터 검사/탐색 재실행·고정 후보/평가 ID·흑백 쌍/사전 예산/표본·완료 단위 재개와 중복 방지를 구체화했다. 기존 관측 시간/소표본을 새 기준 통과로 소급하지 않는다.
+- [환경](headless-environment-contract.md)·[모델](model-contract.md)·[데이터](data-contract.md)·[학습/평가 안내](learning-and-evaluation.md)·[PUCT](puct-search.md)·[개발 계획](development-plan.md)·[결정 목록](requirements-pending.md)·README를 연결/최신화했다. 세부 규칙은 감시 계약, 보상 자격은 보상/데이터, 통계/전술은 평가 계약에 모았다.
 
-- 최종 CTest91개 통과8.90초: 기존90개+torch 없는 PUCT unittest8개를 묶은1개. 선택 학습 unittest6개 통과6.108초. Python compileall도 통과했다.
-- 통제 평가기로3단 backup·실제3턴 leaf 부호, winner 양쪽/패배/draw·즉시 승리/필수 방어·200수 종료에서 NN미호출, 전체 합법 후보/정규화·불법 평가/상태 변경 거부·원본 불변·같은seed/root방문·S/NN/clone/전이 정합·실패 진단/독립 재생을 확인했다. 실제 CNN에서 모델로드1회·eval/gradient비활성·반복 방문/Q/원본 보존도 확인했다. 유한 예산에서 모든 전술 발견을 보증하는 테스트는 아니다.
-- 1simulation smoke2판 정상 종료·저장/재생 후, S1/8/32를 각4판(빈 보드와 자체 h8i8g9 각각 흑백 교대2판) 순차 비교했다. A=PUCT/B=같은 모델policy, game seed23/24, search seed23, c_puct1.5/index tie/no noise. 총12판234수·정상완료12·오류0·완전쌍6, 모두 독립 재생 일치. 작은 두 시작의 개발 평가이며 공식 오프닝/최종 실력 평가가 아니다.
+## 핵심 계약과 미정 사항
 
-| S | PUCT 승/무/패 | PUCT 착수 | 평균PUCT ms | 평균policy ms | NN평가/PUCT 수 |
-|---|---|---:|---:|---:|---:|
-| 1 | 2/0/2 | 42 | 1.582 | 0.516 | 1.952 |
-| 8 | 3/0/1 | 39 | 6.519 | 0.738 | 8.308 |
-| 32 | 3/0/1 | 37 | 36.732 | 0.702 | 30.243 |
+형식/권한/Token/종료 후 거부는 전체 보존, 금수는 시도 돌/성공 이력 불변이지만 반칙패/종료 이벤트/revision은 변경한다. 마스킹 전 확률 질량은 모델 진단이며 실제 불법 착수가 아니다. 마스킹 후 불법은 변환/마스크/상태/규칙의 구현 오류로 조사한다. 정확한 흑5목과 준비 포함200수의 기존 우선순위·blocked/aborted를 정상 결과로 바꾸지 않는 정책을 유지한다.
 
-실제 simulation1538/PUCT NN호출1525/PUCT착수118, terminal leaf의 NN생략으로 S+1보다 적은 평균이다.118개 저장 분포의 rootN/NN 정합도 별도 확인했다. 고정 위치3표본 평균(빈보드/준비3수): policy0.881/0.637ms, PUCT S1 1.776/2.116ms·NN2회, S8 6.312/8.544ms·NN9회, S32 25.447/29.293ms·NN33회. 준비는 모델로드8.036ms·로드+3회warmup 등13.444ms이며 프로세스 import 시간은 제외했다. 실제 대국과 고정 위치의 보드 분포/OS 변동이 다르므로 시간을 섞어 동일 시간 우위로 주장하지 않는다.
+현재 value_target은 금수/기권 종료에 None이다. 권장 금수패 결과 점수-1을 RL 가치에 편입하려면 별도 버전/자격·오류 격리 정책을 정해야 하며 이번에 SL 동작을 변경하지 않았다. 현재 batch는 action/distribution 목표를 표현하지만 PUCT 방문 분포를 검증해 경험으로 변환하는 생성기/RL 업데이트는 없다. initialize_for_rl은 초기 가중치만 제공하며 RL 같은 단계 재개가 아니다.
 
-모델은 기존 자체10판95수로 기능만 검증한 CNN1,050파라미터다. SHA256 a7f9678942246028624ce694c35d16fc9d0e08b855f3fc385f4cac43b75be310 유지. 원본 SL 모델/가중치·데이터는 변경하지 않았다. 8/32의3승1패도 실력 향상/Elo 증거가 아니다. 전체 조건·시작별 결과/소스/DLL 해시와 준비/통계는 검증 JSON을 따른다.
+정상/주의/실패/판단 보류와 명백한 불변조건을 정의했다. heartbeat 주기/진행 정체 창·지연/성능 하락 허용 폭·전술 세트/필수 모드·최소 평가 표본/승격 임계값은 측정 후 실행 전 결정한다. 임의 숫자를 운영 기본값으로 활성화하지 않는다. 표본/기준이 없으면 보류한다. 모델 크기/목표 연도·리그·장비/실제 자료 권리 등의 기존 미정도 유지한다.
 
-## 실행 명령·저장·재개
+자동 대응은 기록/경고/격리/승격 차단/안전 중단 요청까지다. 현재 heartbeat producer/stop hook은 없고 요청이 저장 완료/실제 종료를 뜻하지 않는다. 강제 종료·자동 재시작/재학습·보상/LR 변경은 하지 않는다. SL은 마지막 저장 epoch, 대국은 저장 완료 대국으로 복구한다. 공유 output/동시 환경 호출 미지원과 강제 종료 시 진행 대국·미완료 epoch 유실 가능성도 남긴다.
 
-```powershell
-$env:PYTHONPATH='python'
-$env:TEMP=(Resolve-Path build/pip-temp).Path
-$env:TMP=$env:TEMP
-build/learning-venv/Scripts/python.exe -m omok_learning.evaluate games runs/sl-release-trained/best.pt runs/puct-smoke --player puct --opponent policy --simulations 1 --games 2
-build/learning-venv/Scripts/python.exe -m omok_learning.compare_search runs/sl-release-trained/best.pt runs/puct-comparison-final --simulations 1 8 32 --games 2 --samples 3 --seed 23 --c-puct 1.5
-python -m unittest discover -s python -p test_mcts.py -v
-build/learning-venv/Scripts/python.exe -m unittest discover -s python -p test_learning.py -v
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -AliasParent C:/Users/leesn/AppData/Local/Temp/omok-headless-build -Headless
-ctest --test-dir build/native-release --output-on-failure --no-tests=error
-```
+atomic_save는 파일 하나의 저장이지 mutable best.pt/latest.pt와 metrics 전체의 트랜잭션·불변 후보 등록이 아니다. 평가 전 고정본/해시·선정 epoch를 확인해야 한다. 기존 runner/comparison manifest는 code_version을 엄격 비교하므로 문서 커밋 뒤라도 이전 output 재개가 거부될 수 있다. 새 조건/코드에는 새 output을 쓰며 SL의 소스 해시 기준 재개와 혼동하지 않는다.
 
-기본값/동률·record 필드·예산 단위는 실행 안내에 있다. trace는 action.inference의root_visits/visit_distribution/P/Q·선택수·실제simulation/NN/시간·모델해시를 보존한다. 재생은 실제 수순/보드/결과를 확인하며 모델/탐색을 다시 실행해 메타데이터까지 증명하는 것은 아니다. 방문 분포는 미래 target을 위해 저장하지만 이번에RL경험/업데이트로 전환하지 않았다.
+## 이번 검증과 과거 실행 결과 구분
 
-comparison manifest에 설정·시작·코드/모델/DLL을 먼저 고정한다. 같은 설정의 완료 기록은 독립 검증 후 건너뛰고 미완료는attempt 보존 후 처음부터 실행한다. 코드/설정/모델 변경은 새 출력 폴더를 사용한다. 체크포인트·raw trace·대량 로그·빌드/가상환경은 Git 제외, 작은 설정/테스트/요약 검증만 추적한다.
+이번에는 Git 상태/로그/원격·fetch/차이 확인, 실제 C++/Python 소스·테스트/계약/기존 검증 JSON을 읽고 문서만 검사했다. **빌드·CTest·학습·자동 대국·PUCT·Rapfi·GUI는 새로 실행하지 않았다.** 문서만 변경했으므로 불필요한 전체 빌드/학습을 반복하지 않았다. 감시/보상/전술 실행기는 아직 없으며 동작 검증 완료로 표시하지 않는다.
 
-## 미검증·다음 작업·Git 완료 지점
+이전 실제 빌드/install·CTest91개·학습 선택 unittest6개, 통제 PUCT8개/실제 CNN 연결·12판234수/예산1·8·32 비교는 [보존 인계](handoff-before-monitoring-2026-10-29.md)·[PUCT 검증 JSON](verification/puct-search.json)의 당시 기록이다. SL의 자체10판95수·체크포인트/재개·기능 검증도 [SL 기록](supervised-learning.md)을 따른다. 고수 기보/실력 향상·광범위 전술·하드deadline/장기 대회 적합성은 미검증이다.
 
-실제 고수 기보/학습 향상·광범위 전술/재귀 최악·동일 시간 예산/하드deadline·장시간/다른OS/Python/GPU·Gomocup수신/대회 적합성은 미검증이다. 최적화는 현재 정확한 순차 기준과 측정을 확보한 뒤 필요할 때 별도 검토한다. Rapfi/GUI 수동 실행은 하지 않았다. 새로운 프로필/규칙은 없다.
+문서 검사 명령/결과는 아래에 기록한다. 외부 공고/라이선스·독립 심판을 새로 조사/실행하지 않았으며 기존 근거를 연결했다.
 
-다음 작업 하나는 **같은 모델과 방문 분포를 사용하는 최소 자기 대국 강화학습 루프**다. 보상/오류자격·SL초기화/같은단계재개·가치관점 검증을 별도 범위로 진행하며 이번에 자동 시작하지 않는다.
+### 최종 문서 검사 결과
 
-codex/puct-search에서 관련 코드/작은 테스트·설정·문서·검증 요약만 커밋·일반 푸시한다. 기존 변경/브랜치/이력은 보존하고 main통합/강제푸시/삭제하지 않는다. 최종 커밋ID/실제 푸시는 완료 보고에 남기며 문서만 반복 커밋하지 않는다. 문서 상대 링크346개 누락0·한자/가나 오타 검색·git diff --check를 확인했고 검증 보고서의 모델/DLL 해시·전체 예산 합계도 대조했다. 현재 승인 범위의 구현/검증/저장 후 중단한다.
+- PowerShell에서 저장소 Markdown44개(새 파일 포함)의 상대 링크410개를 검사해 누락0을 확인했다. 외부 URL 최신 유효성을 검증한 것은 아니다.
+- 감시 규칙 행13개/고유 ID13개, 각 행의7개 필드(ID/버전 포함)와 표 구조 누락0을 확인했다. 규칙별 수용 검증은 설계이며 실행하지 않았다.
+- 변경14개 모두 Markdown이고 코드/테스트/설정·기존 verification/과거 인계 변경0이다. 새 보존 인계가 HEAD의 직전 handoff와 같은 원문임을 줄 단위로 비교했다.
+- 한자/가나 오타 검색0·다음 작업/미구현/보상 자격의 상충 표현을 검사했고 git diff --check를 통과했다. 기존 source와 현재 설계의 통계/호환성/재개 범위를 대조했다.
+
+## 다음 작업 하나·저장 상태
+
+다음 제안은 **기존 검사 결과의 순차 감시 이벤트/보고 최소 연결**이다. 계약별 정상/주의/실패/보류와 오류 주입·고정 저장 기록을 검증하고 기존 회귀를 재사용한다. 운영 임계값 활성화·새 학습/RL·대규모 평가·GUI·강제 종료는 제외한다. 목적/선행 조건/산출물/완료 기준은 개발 계획에 기록했다. 이번에는 자동 착수하지 않았다.
+
+검증한 관련 Markdown만 같은 브랜치에 작업 단위로 커밋·일반 푸시한다. 최종 커밋 ID/푸시 결과는 완료 보고에 남긴다. 코드/테스트/설정·기존 verification JSON/과거 인계 파일·학습 데이터·checkpoint·외부 Rapfi 설치는 변경하지 않는다. 새 보존 인계는 직전 원문 사본이다. main 반영은 수행하지 않는다.

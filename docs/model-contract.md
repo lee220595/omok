@@ -79,3 +79,11 @@ MCTS의 node에는 해당 시점의 착수자 관점을 보존하고 edge Q는 �
 SL 체크포인트→RL 초기 모델이 같은 입력에서 전환 직전 예측을 재현하는지, 단계 전환 시 학습 상태가 지정대로 초기화되는지, 같은 단계 재개 시 진행 상태가 복원되는지 시험한다. 인덱스/관점/수순 입력·마스크/softmax·D4 역변환·MCTS 부호/종료·불일치 체크포인트 거부를 고정 사례로 검증한다. 비결정적 실행의 수치 허용 범위는 기록하며 체크포인트 로딩 성공을 학습/실력 성공으로 보고하지 않는다.
 
 2026-10-29 PUCT 후속: 현재 node actor/edge Q·leaf v/실제 종료 결과·루트 N/정규화 방문 분포의 실제 구현·동률·초기 방문·simulation/NN 계수 의미는 [PUCT 안내](puct-search.md)에 명시했다. 이 저장 분포를 RL 경험/목표로 자동 변환하거나 업데이트하는 파이프라인은 아직 없다.
+
+## 고정 후보·감시·RL 전환의 경계
+
+2026-10-29 추가 설계. 모델 로드/계약/내용 해시·형상/유한성 검사는 기존 checkpoint.load·checked_outputs·ModelPlayer를 재사용한다. [감시 계약](monitoring-contract.md)은 이 결과/학습 지표를 관찰하고 실패/보류의 범위를 기록하며 loader/규칙 판정을 새로 복제하지 않는다. 현재 gradient/optimizer 종합 감시와 heartbeat는 없다.
+
+추론 후보의 저장 완료/고정본·평가 중 해시·epoch/step·코드/소스/DLL·설정·규칙·보상/라벨 정책·데이터 분할/평가 세트 식별은 [평가 계약](evaluation-contract.md)을 따른다. 기존 atomic_save는 파일 하나의 무결성을 제공하지만 mutable best.pt를 불변 평가 후보로 바꾸거나 여러 파일 전체의 완료를 보장하는 기능은 아니다.
+
+현재 initialize_for_rl은 SL 가중치/부모 해시·optimizer 초기화 의미만 제공한다. 같은 RL 단계의 checkpoint load/resume·경험/업데이트는 구현하지 않았다. 후속 RL의 pi/z 연결·금수패 결과 점수와 데이터 자격 차이는 [보상 계약](reward-contract.md)에 단일 정의한다. 감시자가 보상·학습률·checkpoint를 조용히 교체하지 않는다.
