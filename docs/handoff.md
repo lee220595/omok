@@ -1,64 +1,42 @@
-# 오목 프로젝트 개발 인계
+# 현재 인계
 
-갱신2026-10-29. **이번 승인 범위는 두 감시자 기반 학습·평가 설계의 문서/계약 갱신**이다. 감시자 코드·RL 업데이트·새 학습/평가 실행은 하지 않았다. 기존 실행/중단 승인 경계를 유지하고 다음 구현도 자동 시작하지 않는다. 직전 [PUCT 인계](handoff-before-monitoring-2026-10-29.md)를 원문 그대로 보존했다.
+갱신 2026-11-02. 승인된 작업은 **기존 검사 결과의 순차 감시 이벤트·보고 최소 연결**이며 구현·제한된 기능 검증을 완료했다. 새 SL 학습/optimizer update·RL·실력 실험은 하지 않았다. [직전 인계](handoff-before-monitor-events-2026-11-02.md)를 보존했다.
 
-## 실제 기준과 사용자 설명 대조
+## 코드·Git 기준
 
-기준 HEAD는 `2dc4eabc46947b42dba5a4cfd3de51818fd5a263`, 브랜치는 `codex/puct-search`다. 시작 시 추적/미추적 변경 없었고 fetch 후 원격 작업 브랜치와 앞/뒤0을 확인했다. main/origin/main은 `a15a871491b74c1685d1dad072c9edb392abc6f7`이다. 미통합 SL/PUCT 의존 이력을 보존해 같은 작업 브랜치에서 문서만 수정한다. main 통합/강제 푸시/브랜치 삭제/기존 변경 폐기는 하지 않는다.
+시작 기준은 `4a1514caac9453570753bc914cd70338ada26873`(감시 계약), 의존 구현은 PUCT `2dc4eab`, SL `e2b3c61`, 무화면 `65037a5`다. 실제 코드와 직전 인계의 SL/PUCT 구현·감시 연결 미구현 상태는 일치했다. `codex/puct-search`에서 `codex/sequential-monitoring`을 만들었다. fetch 시 main보다14 ahead/0 behind인 의존 이력을 보존했으며 main 통합·강제 푸시·브랜치 삭제는 하지 않았다. 이번 최종 커밋 ID/일반 푸시 결과는 완료 보고에 남긴다.
 
-사용자가 언급한 ‘handoff(9)’의 핵심인 **SL·추론·순차 PUCT 구현, RL 업데이트 미구현**은 현재 docs/handoff.md와 실제 코드에 일치한다. 별도 번호9 파일을 확보/검증했다고 주장하지 않는다. 예전 중단한 최초 AI 작업 이후 다른 작업에서 무화면/SL/PUCT 구현이 추가됐으므로 오래된 ‘.venv 생성까지만’ 상태를 현황으로 쓰지 않는다.
+## 변경과 실제 범위
 
-## 재사용할 실제 코드와 부족한 부분
+- `python/omok_monitoring`: 13개 기존 ID/v1, append/fsync JSONL 이벤트·atomic 실행 보고, 정상/주의/실패/판단 보류·증거/해시/Token/설정 연결. 독립 빈 output·순차 단일 작성자다.
+- 환경 runner/records: 마스크/Token/step·거부 보존·금수 반칙패 특례, 비정상 대국 격리·완료 단위 중복 방지·독립 재생·저장 확인. Python 판정기는 추가하지 않았다.
+- 모델/checkpoint/PUCT: 기존 shape/finite/호환성 검사·모델 고정 해시·마스킹 전 불법 질량 진단·완료 검색 통계 구조 검사. 부분 실패/취소 통계에는 성공 등식을 적용하지 않는다. 재생은 탐색 구조 검증이며 탐색 재현이 아니다.
+- SL: epoch/batch 경계 hook·유한 수치/저장 이벤트·마지막 저장 epoch 복구 anchor를 연결했다. 이번에는 사전 중단 및 기존 체크포인트 복사/검증만 실행했고 실제 backward/update 중 중단·재개는 실행하지 않았다.
+- `test_monitoring.py`, `test_monitoring_neural.py`, 두 acceptance 실행기와 [사전 계획](verification/monitoring-functional-plan.json)·[실제 요약](verification/sequential-monitoring.json)을 추가했다.
 
-| 영역 | 실제 구현/재사용 | 아직 없는 것/검증 한계 |
-|---|---|---|
-| C++ 규칙/대국·Python 환경 | rules::evaluate/match::place, src/headless/bridge.cpp의 mask/step, Environment snapshot/mask/observation/clone/Token | Python 독자 판정 불필요. 공통 감시 이벤트/마스킹 전 불법 질량 기록은 없음 |
-| 모델/SL/체크포인트 | PolicyValueNet·checked_outputs/masked_logits, train의 loss/epoch metrics, checkpoint.load/atomic_save/initialize_for_rl | heartbeat/step 정체·gradient/optimizer 종합 감시, RL stage 저장/재개/update 미구현 |
-| 순차 PUCT | mcts.search의 clone·전체 합법 후보·actor backup/실제 종료·고정 S·root 방문/NN/terminal 통계, ModelPlayer.evaluate 재사용 | 고정 시간/hard deadline·탐험/경험/RL 목표 생성·감시 실행기 없음 |
-| 대국/기록/재개 | runner/records의 atomic JSON trace·독립 재생·manifest/완료 건너뛰기·미완료 attempt 보존 | 동시 output 공유/중간 대국·검색 복구 미지원. 재생은 탐색 메타데이터 전체를 검사하지 않음 |
-| 비교/회귀 | compare_search의 같은 모델 policy/PUCT·흑백 교대·일부 예산 검사, 기존 CTest/test_headless/test_learning/test_mcts | 검토된 실제 CNN 전술 세트·CI/통계 승격·고정 후보 등록·중복 평가 통합 감시 미구현 |
+규칙별 연결/미연결·형식·명령은 [순차 감시 안내](sequential-monitoring.md)를 단일 기준으로 사용한다. GR01~04와 LP01/02/03/07/08/09의 기존 검사/경계 및 오류 주입을 연결했다. GR03은 검토된 고정 기대값만 독립 근거로 인정한다. LP04는 통제 기대값 관문만 검증했으며 실제 CNN 전술 기준은 보류다. LP05/06은 지표/표본/임계값 부족으로 판단 보류다. 종합 gradient/optimizer runtime 감시·장시간 정체 기준·통계 승격·외부 watchdog은 미구현이다. 미실행 검사를 정상으로 채우지 않는다.
 
-현재 PUCT의 성공 정의는 root expansion 제외 S회 완료 순회, root 방문 합=S, NN+terminal_hits=S+1, clone=S+1이다. terminal_hits는 고유 종료 국면 수가 아니라 NN을 생략한 leaf 도달 횟수다. transitions는 경로 전체 착수 합이다. 실패 중 부분 통계에 성공 등식을 강제하지 않는다. 기존 정의를 바꾸지 않았다.
+## 안전 중단·저장 의미
 
-확인한 문서상의 오래된 요약 차이는 AGENTS의 ‘무화면 인터페이스 계획/AI 대 AI·기보 모두 미구현’과 개발 계획 표의 ‘MCTS 미구현’이었다. 실제 Python 환경/순차 모델 대국/JSON trace·PUCT 구현에 맞게 갱신하고 GUI AI 대 AI/범용 기보·제출 수신기/전체 평가 미완료와 분리했다. 실제 코드 변경은 없다.
+중단 요청→경계 수용→필요 산출물 저장 확인→실행 범위 종료→보고 저장을 별개 이벤트/상태로 기록한다. OS 프로세스 종료를 관측한 것으로 표현하지 않는다. 대국은 저장 완료 대국 단위, SL은 마지막 저장 epoch 단위 복구를 유지한다. 기존 checkpoint anchor는 새 저장으로 표시하지 않는다.
 
-## 문서 변경
+대국 중단과 PUCT1회 후 취소는 aborted trace/summary 저장 후 안전 완료를 확인했다. 대국/체크포인트 저장 실패는 storage_failed이며 안전 완료 false다. SL 사전 중단은 checkpoint 저장 없이 종료하므로 안전 완료 false다. 이벤트 저장 실패는 메모리의 persisted=false 증거로 보존하며 보고 저장도 불가능하면 예외를 올린다. 저장 성공/안전 종료를 꾸미지 않는다. 실패/격리는 정상 WDL·학습 경험에 편입하지 않는다. 강제 종료·재시작·보상/LR 변경은 없다.
 
-- [AGENTS](../AGENTS.md)에 두 감시자/보상 책임·동일 환경/Token·독립 정답·대응 한도·고정 평가 원칙을 지속 지침으로 추가했다.
-- [감시 계약](monitoring-contract.md)을 새로 작성했다. A 규칙 심판은 C++ 판정/마스크/회귀를 재사용하고 B는 모델/수치/진행·전술/대국/비용·기록/체크포인트를 관찰한다. 별도 AI 모델 두 개/분산 서비스가 아니다. 13개 규칙에 ID/버전·시점/입력·위반·심각도/대상·대응·증거·수용 검증을 정의했다.
-- [보상 계약](reward-contract.md)을 새로 작성했다. 승+1/패·금수패-1/규칙 draw0의 결과 매핑 권장과 기존 board-outcome-v1 가치 자격 보류를 구분한다. 임의 -100·자동 LR/보상 변경은 없다. 후속 pi=root 방문/S, actor 관점 z·SL 초기화/RL 재개 연결 조건을 명시했다.
-- [평가](evaluation-contract.md)에 규칙/실행/전술/대국/처리량 분리·전술 문제 필드·기보 재생/메타데이터 검사/탐색 재실행·고정 후보/평가 ID·흑백 쌍/사전 예산/표본·완료 단위 재개와 중복 방지를 구체화했다. 기존 관측 시간/소표본을 새 기준 통과로 소급하지 않는다.
-- [환경](headless-environment-contract.md)·[모델](model-contract.md)·[데이터](data-contract.md)·[학습/평가 안내](learning-and-evaluation.md)·[PUCT](puct-search.md)·[개발 계획](development-plan.md)·[결정 목록](requirements-pending.md)·README를 연결/최신화했다. 세부 규칙은 감시 계약, 보상 자격은 보상/데이터, 통계/전술은 평가 계약에 모았다.
+## 실제 검증
 
-## 핵심 계약과 미정 사항
+Windows11/Python3.13.7/기존 torch2.14.1+cpu. 의존성을 설치하지 않았다. Linux/Colab은 미검증이다.
 
-형식/권한/Token/종료 후 거부는 전체 보존, 금수는 시도 돌/성공 이력 불변이지만 반칙패/종료 이벤트/revision은 변경한다. 마스킹 전 확률 질량은 모델 진단이며 실제 불법 착수가 아니다. 마스킹 후 불법은 변환/마스크/상태/규칙의 구현 오류로 조사한다. 정확한 흑5목과 준비 포함200수의 기존 우선순위·blocked/aborted를 정상 결과로 바꾸지 않는 정책을 유지한다.
+- 순수16+신경망9=25개 고정 시나리오. 이벤트319개: 정상241/주의2/의도한 실패23/보류53. 원인과 경계 이벤트가 중복될 수 있어23은 독립 실패 건수/테스트 실패 수가 아니다.
+- 새 unittest6개(1.594초)와 선택 neural unittest1개(2.895초) 통과. NaN/Inf/shape·잘못된 Token/종료 후 입력·금수·마스킹 전후·변조/중복·부분 통계·저장 실패를 주입했다.
+- 기존 `test_learning.LearningTests.test_puct_real_model_load_once_eval_mode_and_reproducibility`1개 통과(3.872초). 전체 학습 테스트의 재개/과적합은 update를 하므로 미실행했다. 새 전체 SL loop 회귀를 주장하지 않는다.
+- CTest91개 통과(10.61초). 최초 시도는 없어진 과거 임시 ASCII alias를 참조해 실패/미실행됐다. 기존 `scripts/build.ps1 -AliasParent C:/Users/leesn/AppData/Local/Temp/omok-monitor-build -Headless`로 캐시/빌드/install을 재생성했다. C++ 소스/규칙은 변경하지 않았다.
+- CLI는 ordered/ordered, seed23, 고정 준비 배치, max-actions1로 실행해 interrupted1·winner 없음으로 저장했다. cap을 draw로 만들지 않았다.
+- compileall·diff 검사. 원본 best/latest 체크포인트 해시 보존, optimizer updates0. 신경망 검증은 사본과 임시 디렉터리만 사용했다. 기존 NumPy 미설치 경고는 남고 해당 API는 사용하지 않는다.
 
-현재 value_target은 금수/기권 종료에 None이다. 권장 금수패 결과 점수-1을 RL 가치에 편입하려면 별도 버전/자격·오류 격리 정책을 정해야 하며 이번에 SL 동작을 변경하지 않았다. 현재 batch는 action/distribution 목표를 표현하지만 PUCT 방문 분포를 검증해 경험으로 변환하는 생성기/RL 업데이트는 없다. initialize_for_rl은 초기 가중치만 제공하며 RL 같은 단계 재개가 아니다.
+정확한 명령/산출물 경로·해시는 순차 감시 안내와 검증 JSON에 있다. 성능 향상·실력·장시간 안정성·대회 적합성 검증은 아니다. 대용량 output/체크포인트는 기존 제외 정책을 유지한다.
 
-정상/주의/실패/판단 보류와 명백한 불변조건을 정의했다. heartbeat 주기/진행 정체 창·지연/성능 하락 허용 폭·전술 세트/필수 모드·최소 평가 표본/승격 임계값은 측정 후 실행 전 결정한다. 임의 숫자를 운영 기본값으로 활성화하지 않는다. 표본/기준이 없으면 보류한다. 모델 크기/목표 연도·리그·장비/실제 자료 권리 등의 기존 미정도 유지한다.
+## 다음 작업 하나와 선행 조건
 
-자동 대응은 기록/경고/격리/승격 차단/안전 중단 요청까지다. 현재 heartbeat producer/stop hook은 없고 요청이 저장 완료/실제 종료를 뜻하지 않는다. 강제 종료·자동 재시작/재학습·보상/LR 변경은 하지 않는다. SL은 마지막 저장 epoch, 대국은 저장 완료 대국으로 복구한다. 공유 output/동시 환경 호출 미지원과 강제 종료 시 진행 대국·미완료 epoch 유실 가능성도 남긴다.
+**PUCT 방문 분포 기반 경험 생성과 RL 업데이트 설계**에는 진입 가능하다. 완료 분포/Token/actor/규칙·완료 대국 계보, 적격 결과와 오류 격리·분할, 탐험/온도/노이즈/예산, 별도 RL stage/kind·optimizer/RNG/경험 cursor 재개, 실제 update 중 수치/중단·저장/복구 수용 검증을 먼저 설계한다. 실제 CNN 전술/성능 관문 기준은 별도 확정해야 한다.
 
-atomic_save는 파일 하나의 저장이지 mutable best.pt/latest.pt와 metrics 전체의 트랜잭션·불변 후보 등록이 아니다. 평가 전 고정본/해시·선정 epoch를 확인해야 한다. 기존 runner/comparison manifest는 code_version을 엄격 비교하므로 문서 커밋 뒤라도 이전 output 재개가 거부될 수 있다. 새 조건/코드에는 새 output을 쓰며 SL의 소스 해시 기준 재개와 혼동하지 않는다.
-
-## 이번 검증과 과거 실행 결과 구분
-
-이번에는 Git 상태/로그/원격·fetch/차이 확인, 실제 C++/Python 소스·테스트/계약/기존 검증 JSON을 읽고 문서만 검사했다. **빌드·CTest·학습·자동 대국·PUCT·Rapfi·GUI는 새로 실행하지 않았다.** 문서만 변경했으므로 불필요한 전체 빌드/학습을 반복하지 않았다. 감시/보상/전술 실행기는 아직 없으며 동작 검증 완료로 표시하지 않는다.
-
-이전 실제 빌드/install·CTest91개·학습 선택 unittest6개, 통제 PUCT8개/실제 CNN 연결·12판234수/예산1·8·32 비교는 [보존 인계](handoff-before-monitoring-2026-10-29.md)·[PUCT 검증 JSON](verification/puct-search.json)의 당시 기록이다. SL의 자체10판95수·체크포인트/재개·기능 검증도 [SL 기록](supervised-learning.md)을 따른다. 고수 기보/실력 향상·광범위 전술·하드deadline/장기 대회 적합성은 미검증이다.
-
-문서 검사 명령/결과는 아래에 기록한다. 외부 공고/라이선스·독립 심판을 새로 조사/실행하지 않았으며 기존 근거를 연결했다.
-
-### 최종 문서 검사 결과
-
-- PowerShell에서 저장소 Markdown44개(새 파일 포함)의 상대 링크410개를 검사해 누락0을 확인했다. 외부 URL 최신 유효성을 검증한 것은 아니다.
-- 감시 규칙 행13개/고유 ID13개, 각 행의7개 필드(ID/버전 포함)와 표 구조 누락0을 확인했다. 규칙별 수용 검증은 설계이며 실행하지 않았다.
-- 변경14개 모두 Markdown이고 코드/테스트/설정·기존 verification/과거 인계 변경0이다. 새 보존 인계가 HEAD의 직전 handoff와 같은 원문임을 줄 단위로 비교했다.
-- 한자/가나 오타 검색0·다음 작업/미구현/보상 자격의 상충 표현을 검사했고 git diff --check를 통과했다. 기존 source와 현재 설계의 통계/호환성/재개 범위를 대조했다.
-
-## 다음 작업 하나·저장 상태
-
-다음 제안은 **기존 검사 결과의 순차 감시 이벤트/보고 최소 연결**이다. 계약별 정상/주의/실패/보류와 오류 주입·고정 저장 기록을 검증하고 기존 회귀를 재사용한다. 운영 임계값 활성화·새 학습/RL·대규모 평가·GUI·강제 종료는 제외한다. 목적/선행 조건/산출물/완료 기준은 개발 계획에 기록했다. 이번에는 자동 착수하지 않았다.
-
-검증한 관련 Markdown만 같은 브랜치에 작업 단위로 커밋·일반 푸시한다. 최종 커밋 ID/푸시 결과는 완료 보고에 남긴다. 코드/테스트/설정·기존 verification JSON/과거 인계 파일·학습 데이터·checkpoint·외부 Rapfi 설치는 변경하지 않는다. 새 보존 인계는 직전 원문 사본이다. main 반영은 수행하지 않는다.
+보상 자격·`data.value_target`·board-outcome-v1은 변경하지 않았다. 금수패·기권의 value_target은 여전히 None이며 편입은 별도 버전/자격 정책이 필요한 미해결 사항이다. 설계 진입은 경험 생성·RL 구현/학습의 자동 착수 승인이 아니다.

@@ -29,14 +29,18 @@ def begin(env, *, game_id, start, config, seed, code_version):
                 initial=logical(env.snapshot()), actions=[], status="incomplete", diagnostic=None)
 
 
-def apply(env, record, action):
+def apply(env, record, action, *, monitor=None, selection=None):
     s = env.snapshot()
     count = len(record["actions"])
     def append(decision, after):
         record["actions"].append(dict(action=action, row=action//15, column=action%15,
             color=s["next_color"], actor=s["next_actor"], decision=decision, after=logical(after)))
     try:
-        decision = env.step(action, actor=s["next_actor"], expected=s["token"])
+        if monitor is None:
+            decision = env.step(action, actor=s["next_actor"], expected=s["token"])
+        else:
+            from omok_monitoring.checks import audited_step
+            decision=audited_step(monitor,env,action,actor=s["next_actor"],expected=s["token"],selection=selection)
         append(decision, env.snapshot())
     except BaseException:
         # A signal can arrive just after the native transaction commits. Preserve
@@ -57,7 +61,22 @@ def finish(env, record, status, diagnostic=None):
     return record
 
 
-def replay(record, library=None):
+def replay(record, library=None, *, monitor=None):
+    try:
+        if monitor:
+            from omok_monitoring.events import digest,file_hash
+            if isinstance(record,(str,Path)):
+                monitor.bind(trace_path=str(record));monitor.bind(trace_sha256=file_hash(record))
+            else:monitor.bind(trace_game_id=record.get("game_id"),trace_sha256=digest(record))
+        result=_replay(record,library,monitor=monitor)
+    except Exception as error:
+        if monitor:monitor.emit("LP-07","failure","record_validation_failed",dict(error=str(error)))
+        raise
+    if monitor:monitor.emit("LP-07","normal","logical_trace_replay_verified",dict(search_reexecution=False))
+    return result
+
+
+def _replay(record, library=None, *, monitor=None):
     if isinstance(record, (str, Path)):
         with open(record, encoding="utf-8") as stream:
             record = json.load(stream)
@@ -75,6 +94,11 @@ def replay(record, library=None):
             raise ValueError("initial state mismatch")
         for event in record["actions"]:
             s = env.snapshot()
+            if monitor and "search" in event.get("inference",{}):
+                from omok_monitoring.checks import puct
+                info=event["inference"]
+                monitor.require("LP-07",info["action"]==event["action"],"search_action_trace_binding",{"action":event["action"]})
+                puct(monitor,info,mask=env.mask(),rule="LP-07")
             if (event["actor"], event["color"]) != (s["next_actor"], s["next_color"]):
                 raise ValueError("actor/color mismatch")
             if (event["row"], event["column"]) != divmod(event["action"],15):

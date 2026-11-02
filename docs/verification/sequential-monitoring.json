@@ -1,0 +1,828 @@
+{
+  "date": "2026-11-02",
+  "scope": "bounded sequential monitoring verification only; no new SL/RL/strength experiments",
+  "code": {
+    "commit": "4a1514caac9453570753bc914cd70338ada26873",
+    "dirty": true,
+    "source_sha256": "a4a5c91d65ab01a53365ece370f177d4083e69a5ccbfe952702eabca0845b434"
+  },
+  "os": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.7",
+  "rules": {
+    "GR-01": {
+      "version": 1,
+      "observed_states": {
+        "normal": 14,
+        "failure": 1,
+        "deferred": 4
+      }
+    },
+    "GR-02": {
+      "version": 1,
+      "observed_states": {
+        "normal": 4,
+        "warning": 1,
+        "failure": 1
+      }
+    },
+    "GR-03": {
+      "version": 1,
+      "observed_states": {
+        "normal": 2,
+        "failure": 1,
+        "deferred": 1
+      }
+    },
+    "GR-04": {
+      "version": 1,
+      "observed_states": {
+        "normal": 2,
+        "deferred": 5,
+        "failure": 1
+      }
+    },
+    "LP-01": {
+      "version": 1,
+      "observed_states": {
+        "normal": 16,
+        "failure": 5
+      }
+    },
+    "LP-02": {
+      "version": 1,
+      "observed_states": {
+        "normal": 3,
+        "deferred": 3,
+        "failure": 1
+      }
+    },
+    "LP-03": {
+      "version": 1,
+      "observed_states": {
+        "deferred": 25,
+        "normal": 140
+      }
+    },
+    "LP-04": {
+      "version": 1,
+      "observed_states": {
+        "normal": 1,
+        "deferred": 1,
+        "warning": 1,
+        "failure": 1
+      }
+    },
+    "LP-05": {
+      "version": 1,
+      "observed_states": {
+        "deferred": 2
+      }
+    },
+    "LP-06": {
+      "version": 1,
+      "observed_states": {
+        "deferred": 8
+      }
+    },
+    "LP-07": {
+      "version": 1,
+      "observed_states": {
+        "normal": 11,
+        "failure": 5
+      }
+    },
+    "LP-08": {
+      "version": 1,
+      "observed_states": {
+        "normal": 46,
+        "failure": 3
+      }
+    },
+    "LP-09": {
+      "version": 1,
+      "observed_states": {
+        "normal": 2,
+        "deferred": 4,
+        "failure": 4
+      }
+    }
+  },
+  "case_count": 25,
+  "event_count": 319,
+  "states": {
+    "deferred": 53,
+    "normal": 241,
+    "warning": 2,
+    "failure": 23
+  },
+  "note": "Expected injected failures are signals, not independent failed tests or a model error rate; cause and enclosing scope may both emit events",
+  "plans": {
+    "pure": {
+      "schema": "omok-monitor-acceptance-plan-v1",
+      "purpose": "bounded event/response acceptance, not strength or learning",
+      "fixed_starts": {
+        "win": "a8a1b8c1c8e1d8g1",
+        "forbidden": "g8a1h7c1i8e1h9g1"
+      },
+      "max_general_moves_per_game": 1,
+      "max_simulations_per_search": 2,
+      "player": "controlled test double",
+      "sl_optimizer_updates": 0,
+      "rl_updates": 0,
+      "termination": "fixed normal result, explicit cap/stop, or deterministic injected error; independent output per case"
+    },
+    "neural": {
+      "purpose": "copied completed checkpoints, model forward/checks only; no learning",
+      "checkpoint_sha256": "a7f9678942246028624ce694c35d16fc9d0e08b855f3fc385f4cac43b75be310",
+      "resume_sha256": "c8cd705125d6da438c1e29c1c49636cac59da8e9d9dc7f88063d1d57fe149c66",
+      "fixed_start": "a8a1b8c1c8e1d8g1",
+      "max_real_actions": 0,
+      "max_simulations": 2,
+      "optimizer_updates": 0,
+      "stop": "single checked forward/search or deterministic error; SL entry pre-stopped"
+    },
+    "declared_plan": "docs/verification/monitoring-functional-plan.json"
+  },
+  "checkpoints_unchanged": true,
+  "optimizer_updates": 0,
+  "rl_updates": 0,
+  "tests": {
+    "monitor_unit": 6,
+    "monitor_unit_failed": 0,
+    "monitor_unit_seconds": 1.594,
+    "monitor_neural_unit": 1,
+    "monitor_neural_failed": 0,
+    "ctest": 91,
+    "ctest_failed": 0,
+    "ctest_seconds": 10.61,
+    "selected_existing_learning_test": "test_puct_real_model_load_once_eval_mode_and_reproducibility: passed, no optimizer updates",
+    "skipped_existing_learning": [
+      "test_exact_resume_checkpoint_and_rl_initialization",
+      "test_outputs_mask_losses_and_overfit",
+      "full SL execution"
+    ],
+    "skip_reason": "New SL/update execution excluded by current user scope"
+  },
+  "build": {
+    "cpp_sources_changed": false,
+    "reconfigured": true,
+    "reason": "Generated CTest paths referenced a removed previous temp alias; initial run failed/not-run; existing build.ps1 regenerated the alias/config and rebuilt successfully",
+    "alias": "C:/Users/leesn/AppData/Local/Temp/omok-monitor-build/omok-build-71f60837f90e"
+  },
+  "cli_smoke": {
+    "command": "python -m omok_env.runner runs/monitor-cli-game --games 1 --seed 23 --players ordered ordered --compact a8a1b8c1c8e1d8g1 --max-actions 1 --monitor-output runs/monitor-cli-events",
+    "result": {
+      "counts": {
+        "interrupted": 1
+      },
+      "winners": {},
+      "elapsed_seconds": 0.019520800007740036,
+      "new_moves": 1,
+      "selection_samples": 1,
+      "mean_selection_ms": 0.43169999844394624
+    },
+    "monitor_report_sha256": "a2cee92f393368d1edef25e2550f5f18bdd6eb4c44c07a06b93518b5eead046e"
+  },
+  "cases": [
+    {
+      "case": "normal",
+      "events": 33,
+      "states": {
+        "deferred": 6,
+        "normal": 27
+      },
+      "outcome": "completed",
+      "stop": {
+        "requested": false,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [
+          "game:runs\\monitor-v1-verified\\normal-games\\game-000000.json",
+          "game_summary"
+        ],
+        "saved": {
+          "game:runs\\monitor-v1-verified\\normal-games\\game-000000.json": {
+            "path": "runs\\monitor-v1-verified\\normal-games\\game-000000.json",
+            "sha256": "12d0ec12cd07b516ea7f4b7903bcd93b1390b968c9ccf30ee1bdf8ebc2c682b0"
+          },
+          "game_summary": {
+            "path": "runs\\monitor-v1-verified\\normal-games\\summary.json",
+            "sha256": "98db229d646cc1c59f1e733acb27bc2e5b99c817de603aa546962982e1e3c942"
+          }
+        },
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "6cddd74c31d6330c1580de642e7e0b614193ccc6652b0545b4e0518f63efde63",
+      "report_sha256": "a1c01762c61da3ceb337808cd4db584721ed7780d4134e1c820288c828ae0d7b",
+      "evidence": "runs\\monitor-v1-verified\\normal"
+    },
+    {
+      "case": "rejections",
+      "events": 8,
+      "states": {
+        "deferred": 1,
+        "normal": 6,
+        "warning": 1
+      },
+      "outcome": "completed",
+      "stop": {
+        "requested": false,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "941f6609cec3e13c0df59ea83ef9dcd2adf85b137be2a66d5ae3e98b7482e794",
+      "report_sha256": "fcf4e95a935132457ed92bc9f1bc35f3a76cb374537ba5131c619c9691502ef5",
+      "evidence": "runs\\monitor-v1-verified\\rejections"
+    },
+    {
+      "case": "rejection-state-mutation",
+      "events": 4,
+      "states": {
+        "deferred": 1,
+        "failure": 1,
+        "normal": 2
+      },
+      "outcome": "failed_checks_scope_ended",
+      "stop": {
+        "requested": true,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "294333e29b16c3dd64dd7dcc65ab5d6901d94073ef13ce025ae8ca6b05da8106",
+      "report_sha256": "60068d497d54838737a866e203502b61e1d556378b23bcbed5b691632d290f09",
+      "evidence": "runs\\monitor-v1-verified\\rejection-state-mutation"
+    },
+    {
+      "case": "forbidden",
+      "events": 4,
+      "states": {
+        "deferred": 1,
+        "normal": 3
+      },
+      "outcome": "completed",
+      "stop": {
+        "requested": false,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "33bf0583857dcdd59cc4f8d41789b83783a9734b1985982284fe6af7dbb5116f",
+      "report_sha256": "be377297db9ea12bf7eb637385790b332bc1b11bf17a8a13f7826ab666fd36ba",
+      "evidence": "runs\\monitor-v1-verified\\forbidden"
+    },
+    {
+      "case": "post-mask-illegal",
+      "events": 18,
+      "states": {
+        "deferred": 3,
+        "normal": 13,
+        "failure": 2
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [
+          "game:runs\\monitor-v1-verified\\illegal-games\\game-000000.json",
+          "game_summary"
+        ],
+        "saved": {
+          "game:runs\\monitor-v1-verified\\illegal-games\\game-000000.json": {
+            "path": "runs\\monitor-v1-verified\\illegal-games\\game-000000.json",
+            "sha256": "bf1d80aa6951b38f4b06c13e840f351fa3a536b575926220ce55aa2e81d657af"
+          },
+          "game_summary": {
+            "path": "runs\\monitor-v1-verified\\illegal-games\\summary.json",
+            "sha256": "3368c2cc67fb4b9c700206b0fec4055b15be3cd959ba1812d4e7c4d98c30a141"
+          }
+        },
+        "storage_failed": false,
+        "safe_stop_complete": true
+      },
+      "events_sha256": "0ca7626e2bcca5a1a9e6df70df30e431eb24e6a67412a63b348efe10df1ed911",
+      "report_sha256": "fbfba1d9be0916c4953cdd5a170f80594a9f0d30109cd998add91143ae598787",
+      "evidence": "runs\\monitor-v1-verified\\post-mask-illegal"
+    },
+    {
+      "case": "partial-puct",
+      "events": 19,
+      "states": {
+        "deferred": 4,
+        "normal": 13,
+        "failure": 2
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [
+          "game:runs\\monitor-v1-verified\\partial-games\\game-000000.json",
+          "game_summary"
+        ],
+        "saved": {
+          "game:runs\\monitor-v1-verified\\partial-games\\game-000000.json": {
+            "path": "runs\\monitor-v1-verified\\partial-games\\game-000000.json",
+            "sha256": "7e4bffd9d90b7fa40e88bfa0081965d7d6c482f4b596e4d46ff9836e16859cdb"
+          },
+          "game_summary": {
+            "path": "runs\\monitor-v1-verified\\partial-games\\summary.json",
+            "sha256": "d46e2aa7c2fa003e68fcbe0734a9937638733b2ae07757c762a2e70a03d7043c"
+          }
+        },
+        "storage_failed": false,
+        "safe_stop_complete": true
+      },
+      "events_sha256": "eabef83a941f34fb33438f072569ae76f073be0200e6455273df524b83a8ab4f",
+      "report_sha256": "e46560f7c22571b7009dea01f62a68d6deeb04f2d88d60773a07316942e4553e",
+      "evidence": "runs\\monitor-v1-verified\\partial-puct"
+    },
+    {
+      "case": "stop-save-end",
+      "events": 20,
+      "states": {
+        "deferred": 3,
+        "normal": 17
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [
+          "game:runs\\monitor-v1-verified\\stop-games\\game-000000.json",
+          "game_summary"
+        ],
+        "saved": {
+          "game:runs\\monitor-v1-verified\\stop-games\\game-000000.json": {
+            "path": "runs\\monitor-v1-verified\\stop-games\\game-000000.json",
+            "sha256": "1df11eb5b47812990513136abc07a1b02fd8a44d99baffa2e4ad80d3bbb68bab"
+          },
+          "game_summary": {
+            "path": "runs\\monitor-v1-verified\\stop-games\\summary.json",
+            "sha256": "bad9035f28be78d86f67a941b9ae25a5a93808f3624a44c469a63addfe153d27"
+          }
+        },
+        "storage_failed": false,
+        "safe_stop_complete": true
+      },
+      "events_sha256": "353ba8a67136f9dc1ce12d1a453dc71ffd556496723ddd34225f755b626eff25",
+      "report_sha256": "c182e394bc159a368326456bdec3de5c35e291675d75f22c48ce80c16ae62c33",
+      "evidence": "runs\\monitor-v1-verified\\stop-save-end"
+    },
+    {
+      "case": "partial-puct-cancel",
+      "events": 20,
+      "states": {
+        "deferred": 4,
+        "normal": 16
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [
+          "game:runs\\monitor-v1-verified\\interrupted-search-games\\game-000000.json",
+          "game_summary"
+        ],
+        "saved": {
+          "game:runs\\monitor-v1-verified\\interrupted-search-games\\game-000000.json": {
+            "path": "runs\\monitor-v1-verified\\interrupted-search-games\\game-000000.json",
+            "sha256": "db3ff141c53bd6010c732521ce5145d17c8eac8362d2e9ca19c7e9a15549546f"
+          },
+          "game_summary": {
+            "path": "runs\\monitor-v1-verified\\interrupted-search-games\\summary.json",
+            "sha256": "0019d8e8c9dc2706d3c571b7e08b117c65b5698a2c5a8e1c81059aedd114ddca"
+          }
+        },
+        "storage_failed": false,
+        "safe_stop_complete": true
+      },
+      "events_sha256": "96fd2e989a27bd4499bf69d30deffdfb59974b8f9cdd029bab0510824f722a18",
+      "report_sha256": "b872c890a495f1ce76aef924c916024a6f70e73f861e015222628765f7373f32",
+      "evidence": "runs\\monitor-v1-verified\\partial-puct-cancel"
+    },
+    {
+      "case": "blocked",
+      "events": 13,
+      "states": {
+        "deferred": 3,
+        "normal": 10
+      },
+      "outcome": "completed",
+      "stop": {
+        "requested": false,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [
+          "game:runs\\monitor-v1-verified\\blocked-games\\game-000000.json",
+          "game_summary"
+        ],
+        "saved": {
+          "game:runs\\monitor-v1-verified\\blocked-games\\game-000000.json": {
+            "path": "runs\\monitor-v1-verified\\blocked-games\\game-000000.json",
+            "sha256": "0adce6ab1a64a9a46f14078a0dff72eb1d4ec431b8df8639e1926ecdc56d158f"
+          },
+          "game_summary": {
+            "path": "runs\\monitor-v1-verified\\blocked-games\\summary.json",
+            "sha256": "e011e522558a1cf11ef8c32d5635ce8584d833aa14f14ee1068bcff8ab8d0377"
+          }
+        },
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "a92dad0ec982308ea5ad49f6db2a218bb9f1396cb25bcc7af204dc153946b300",
+      "report_sha256": "54d6b94afc0e59eeddffbfca107ff0fe244f287f298f82aa7d0dea5a0d27bc73",
+      "evidence": "runs\\monitor-v1-verified\\blocked"
+    },
+    {
+      "case": "save-failure",
+      "events": 22,
+      "states": {
+        "deferred": 2,
+        "normal": 18,
+        "failure": 2
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [
+          "game:runs\\monitor-v1-verified\\save-failed-games\\game-000000.json",
+          "game_summary"
+        ],
+        "saved": {
+          "game_summary": {
+            "path": "runs\\monitor-v1-verified\\save-failed-games\\summary.json",
+            "sha256": "2b81c0017b4dc1dc0821df3f5613f2f61b1ecd430c70debae288a2ab08a87df8"
+          }
+        },
+        "storage_failed": true,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "a858336d6535fa22d3f6286215b1e6696b5a188ae2257f1610a6248ecdd99359",
+      "report_sha256": "8a794d8fca4149fe8384c0e2d635e4bb9bea160b6f89ac82010be6b6ef327d94",
+      "evidence": "runs\\monitor-v1-verified\\save-failure"
+    },
+    {
+      "case": "search-metadata-corruption",
+      "events": 6,
+      "states": {
+        "deferred": 1,
+        "normal": 3,
+        "failure": 2
+      },
+      "outcome": "failed_checks_scope_ended",
+      "stop": {
+        "requested": true,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "685137370d73d5bd772d6d0ce52c38bc8b2d24ac931e25946ec99561978703df",
+      "report_sha256": "a78a0beb01c777e2c90ec86ae2c18c29de340c5f8b2b4ec83e78ca232b3db8ce",
+      "evidence": "runs\\monitor-v1-verified\\search-metadata-corruption"
+    },
+    {
+      "case": "logical-record-corruption",
+      "events": 6,
+      "states": {
+        "deferred": 1,
+        "normal": 4,
+        "failure": 1
+      },
+      "outcome": "failed_checks_scope_ended",
+      "stop": {
+        "requested": true,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "8168efaba1c672fc8007553f85eb33f869613b2e746a0e129430222a2a8abe9d",
+      "report_sha256": "d42fb4ee027534c4aa13ca3a2f25480d59259356042be1a89d83f88aa3b805f1",
+      "evidence": "runs\\monitor-v1-verified\\logical-record-corruption"
+    },
+    {
+      "case": "wrong-expectation-and-label",
+      "events": 6,
+      "states": {
+        "deferred": 2,
+        "failure": 2,
+        "normal": 2
+      },
+      "outcome": "failed_checks_scope_ended",
+      "stop": {
+        "requested": true,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "91c3e18d7d117b21d040c62a2ae44321e1ae3522af8f946ffdc9d3053a45d366",
+      "report_sha256": "76ab8042db060bf4d27af6d5ddc6d54fd7ab83288cdd77ad804a59beb7df4b98",
+      "evidence": "runs\\monitor-v1-verified\\wrong-expectation-and-label"
+    },
+    {
+      "case": "artifact-and-duplicate",
+      "events": 6,
+      "states": {
+        "deferred": 1,
+        "failure": 2,
+        "normal": 3
+      },
+      "outcome": "failed_checks_scope_ended",
+      "stop": {
+        "requested": true,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "16254d24859c8df0838dc5c2c9cc06395b07f22182591fe1b5c74bf83fc4a3ef",
+      "report_sha256": "60adf240ea4cffdfb9d50b4d2bdc2d7c4ab1e683e029b4af54397dafb5dab92a",
+      "evidence": "runs\\monitor-v1-verified\\artifact-and-duplicate"
+    },
+    {
+      "case": "numeric-and-unestablished-strength",
+      "events": 7,
+      "states": {
+        "deferred": 2,
+        "failure": 2,
+        "normal": 2,
+        "warning": 1
+      },
+      "outcome": "failed_checks_scope_ended",
+      "stop": {
+        "requested": true,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "fe85cea506a7ed4728218fe6569e3bff0f455f6adb38edf930972f25c09881ad",
+      "report_sha256": "23fa7f75c0d554025de603073db8d96ff2f2177d5cfb3754d80ae0060b777aa3",
+      "evidence": "runs\\monitor-v1-verified\\numeric-and-unestablished-strength"
+    },
+    {
+      "case": "heartbeat-clock",
+      "events": 4,
+      "states": {
+        "deferred": 1,
+        "normal": 3
+      },
+      "outcome": "completed",
+      "stop": {
+        "requested": false,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "01beab46eb76c834e14289ad9826e215264a8b05be359b6401e66db987d81712",
+      "report_sha256": "e37570b474689ed96aacacf30029597062e8c6829a7578befcbe7d8d2bd666a9",
+      "evidence": "runs\\monitor-v1-verified\\heartbeat-clock"
+    },
+    {
+      "case": "normal-model-numerics",
+      "events": 34,
+      "states": {
+        "deferred": 8,
+        "normal": 26
+      },
+      "outcome": "completed",
+      "stop": {
+        "requested": false,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "1fe04bb9eb0095335e1671c175c7935539cbe0a568882538e5e670594efdb4a8",
+      "report_sha256": "68f248c78acc0bc3bb08f8696d2acfbed025e950acad04c054c3eb6b3e1e4f2d",
+      "evidence": "runs\\monitor-v1-neural\\normal-model-numerics"
+    },
+    {
+      "case": "nonfinite-output",
+      "events": 13,
+      "states": {
+        "deferred": 1,
+        "normal": 11,
+        "failure": 1
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "b1ca20ffc2f3a85c0ae51caca602b833283e018e910caa8cfb7b3871e69edfe7",
+      "report_sha256": "89dcf85da9cfc11e3c3f0744ae4c8b5366cddf40f0cb23a846e1b34101acaa99",
+      "evidence": "runs\\monitor-v1-neural\\nonfinite-output"
+    },
+    {
+      "case": "infinite-output",
+      "events": 13,
+      "states": {
+        "deferred": 1,
+        "normal": 11,
+        "failure": 1
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "255538be7c821255c32f24b8489cd81a55cbbf97b67ca02519298d92e2525e5a",
+      "report_sha256": "cc1e739ef0075554b5f0fbc1e4cfe900135da1b6ff4188bd97bff6c9516f4aec",
+      "evidence": "runs\\monitor-v1-neural\\infinite-output"
+    },
+    {
+      "case": "wrong-shape",
+      "events": 13,
+      "states": {
+        "deferred": 1,
+        "normal": 11,
+        "failure": 1
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "8a9d6775951cde31125acfd9a3b1854ff77b75fb30240015973ba8a479a9d2fb",
+      "report_sha256": "efc83b654de465f45a8babe47c12206dd37a8fd7f83b853214b474af500004cd",
+      "evidence": "runs\\monitor-v1-neural\\wrong-shape"
+    },
+    {
+      "case": "mutable-loaded-model",
+      "events": 11,
+      "states": {
+        "deferred": 1,
+        "normal": 8,
+        "failure": 2
+      },
+      "outcome": "failed_checks_scope_ended",
+      "stop": {
+        "requested": true,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "04b56461b0c1f9d6eaf15cd42af62c1eceecf26b3843e4925beda59255797438",
+      "report_sha256": "34cc356bd579b1e568420f359091970ffa5f781ebf09855b463938ccd5791199",
+      "evidence": "runs\\monitor-v1-neural\\mutable-loaded-model"
+    },
+    {
+      "case": "sl-entry-stop",
+      "events": 5,
+      "states": {
+        "deferred": 1,
+        "normal": 4
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "0120a3289040f34873e830a7eecbdbb677f1746d7e2943419dce952173a3cb9f",
+      "report_sha256": "93659b75b0561e911e341219ce0eb31ff997ac6045cbf35a39fa6c56d1f987e1",
+      "evidence": "runs\\monitor-v1-neural\\sl-entry-stop"
+    },
+    {
+      "case": "checkpoint-save-recovery",
+      "events": 17,
+      "states": {
+        "deferred": 2,
+        "normal": 15
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [
+          "checkpoint:runs\\monitor-v1-neural\\copied-last-saved-epoch.pt"
+        ],
+        "saved": {
+          "checkpoint:runs\\monitor-v1-neural\\copied-last-saved-epoch.pt": {
+            "path": "runs\\monitor-v1-neural\\copied-last-saved-epoch.pt",
+            "sha256": "d6f695886d4647f90a467190fb47bd0f52a8b7b15a2c09fc0127d661f7da906b"
+          }
+        },
+        "storage_failed": false,
+        "safe_stop_complete": true
+      },
+      "events_sha256": "97f6c9c6ad4fd8ef72b103aa42b1168facb7c8ec7c43e6f8d01c665b2c1b77f6",
+      "report_sha256": "27405321299022693e8203586175878dfcb768b161ff233dfae65703e0eaaca9",
+      "evidence": "runs\\monitor-v1-neural\\checkpoint-save-recovery"
+    },
+    {
+      "case": "damaged-checkpoint",
+      "events": 6,
+      "states": {
+        "deferred": 1,
+        "normal": 4,
+        "failure": 1
+      },
+      "outcome": "failed_checks_scope_ended",
+      "stop": {
+        "requested": true,
+        "accepted": false,
+        "execution_scope_ended": true,
+        "required_saves": [],
+        "saved": {},
+        "storage_failed": false,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "b7542a8118e3293b93ac2150cba3e877f54c3f68ce2bcb31d498d363f0844824",
+      "report_sha256": "9771c7b2efe8584832d5e5d68d5e8d0286c8123deb437614f6b4cb9ed72e12ab",
+      "evidence": "runs\\monitor-v1-neural\\damaged-checkpoint"
+    },
+    {
+      "case": "checkpoint-save-failure",
+      "events": 11,
+      "states": {
+        "deferred": 1,
+        "normal": 9,
+        "failure": 1
+      },
+      "outcome": "stopped",
+      "stop": {
+        "requested": true,
+        "accepted": true,
+        "execution_scope_ended": true,
+        "required_saves": [
+          "checkpoint:runs\\monitor-v1-neural\\existing-good-copy.pt"
+        ],
+        "saved": {},
+        "storage_failed": true,
+        "safe_stop_complete": false
+      },
+      "events_sha256": "aa8e197980cf59a11452bf7415d352f584528f9d550eda282d9098be27ff4964",
+      "report_sha256": "aed9b4428161f0877bdc3b4b0af3664da73eeb480688ed1c2fc45db8407c898d",
+      "evidence": "runs\\monitor-v1-neural\\checkpoint-save-failure"
+    }
+  ],
+  "held": [
+    "LP-02 full live gradient/optimizer update auditing and new SL run not executed",
+    "LP-03 periodic/external watchdog and operational timeout thresholds",
+    "LP-04 reviewed real-CNN mandatory tactical gate",
+    "LP-05 forgetting/overfit criteria",
+    "LP-06 sample/strength/promotion criteria",
+    "LP-08 distributed event ingestion/global promotion registry",
+    "RL experience/eligibility update/learning/checkpoint schema"
+  ]
+}

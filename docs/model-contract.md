@@ -87,3 +87,6 @@ SL 체크포인트→RL 초기 모델이 같은 입력에서 전환 직전 예�
 추론 후보의 저장 완료/고정본·평가 중 해시·epoch/step·코드/소스/DLL·설정·규칙·보상/라벨 정책·데이터 분할/평가 세트 식별은 [평가 계약](evaluation-contract.md)을 따른다. 기존 atomic_save는 파일 하나의 무결성을 제공하지만 mutable best.pt를 불변 평가 후보로 바꾸거나 여러 파일 전체의 완료를 보장하는 기능은 아니다.
 
 현재 initialize_for_rl은 SL 가중치/부모 해시·optimizer 초기화 의미만 제공한다. 같은 RL 단계의 checkpoint load/resume·경험/업데이트는 구현하지 않았다. 후속 RL의 pi/z 연결·금수패 결과 점수와 데이터 자격 차이는 [보상 계약](reward-contract.md)에 단일 정의한다. 감시자가 보상·학습률·checkpoint를 조용히 교체하지 않는다.
+
+
+2026-11-02 추가: 기존 검사에 연결한 [순차 감시 이벤트·보고](sequential-monitoring.md)의 실제 범위/제한을 따른다. 새 SL/RL 업데이트나 보상 자격 변경은 하지 않았다.

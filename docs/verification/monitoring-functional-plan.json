@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-02",
+  "purpose": "Sequential monitoring acceptance and related regression only",
+  "new_sl_optimizer_updates": 0,
+  "rl_updates": 0,
+  "external_data_or_rapfi": false,
+  "acceptance_bounds": {
+    "fixed_starts": ["a8a1b8c1c8e1d8g1", "g8a1h7c1i8e1h9g1"],
+    "general_game_action_cap": 1,
+    "simulations_per_search": 2,
+    "neural_real_actions": 0,
+    "model_source": "copies of runs/sl-release-trained/best.pt and latest.pt",
+    "stop": "known terminal, explicit stop/cap, or deterministic injected error"
+  },
+  "regression_bounds": {
+    "ctest": "existing 91 tests; bounded test-owned games, existing profile <=200 placements; PUCT tests <=32 simulations",
+    "optional_learning_tests": ["test_puct_real_model_load_once_eval_mode_and_reproducibility"],
+    "optional_puct_budget": "3 simulations twice, no actual board application",
+    "skipped_learning": "No train/resume or overfit/update tests; no new SL authorized"
+  },
+  "persistence": "Each scenario creates an independent output before execution; temporary test directories only; production checkpoints are read/copied and hash-checked"
+  ,"cli_smoke": {"purpose":"runner CLI event/report wiring only", "games":1, "compact":"a8a1b8c1c8e1d8g1", "players":["ordered","ordered"], "max_actions":1, "stop":"runner cap or earlier actual terminal", "new_learning":false}
+}

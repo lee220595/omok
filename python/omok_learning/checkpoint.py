@@ -46,7 +46,9 @@ def restore_rng(state):
     random.setstate(state["python"]); torch.set_rng_state(state["torch"])
 
 
-def atomic_save(path,payload):
+def atomic_save(path,payload,*,monitor=None):
+    if monitor:
+        return monitor.save_artifact("checkpoint:"+str(path),path,lambda:atomic_save(path,payload))
     path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
     payload=dict(payload)
     payload.pop("integrity",None)
@@ -65,7 +67,23 @@ def payload(model,kind,metadata,**state):
         model_config=asdict(model.config),weights=model.state_dict(),metadata=metadata,runtime=runtime(),**state)
 
 
-def load(path,*,kind=None):
+def load(path,*,kind=None,monitor=None):
+    try:
+        if monitor:
+            monitor.progress("checkpoint_loading",{"path":str(path)})
+            monitor.require("LP-08",".tmp" not in Path(path).name,"checkpoint_not_temporary",{"path":str(path)})
+        result=_load(path,kind=kind)
+        if monitor:
+            from omok_monitoring.checks import checkpoint_metadata
+            checkpoint_metadata(monitor,path,result[1])
+            monitor.emit("LP-01","normal","existing_checkpoint_checks_passed",dict(path=str(path),kind=result[1]["kind"]))
+        return result
+    except Exception as error:
+        if monitor:monitor.emit("LP-01","failure","checkpoint_load_failed",dict(path=str(path),error=str(error)))
+        raise
+
+
+def _load(path,*,kind=None):
     try:
         data=torch.load(path,map_location="cpu",weights_only=True)
         if not isinstance(data,dict) or data.get("schema")!=SCHEMA or data.get("contract")!=CONTRACT:

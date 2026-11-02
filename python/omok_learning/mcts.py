@@ -108,7 +108,7 @@ def _expand(node,env,mask,evaluator,stats):
     return float(value)
 
 
-def search(env,mask,evaluator,config=SearchConfig()):
+def search(env,mask,evaluator,config=SearchConfig(),*,monitor=None):
     """Root expansion + exactly config.simulations completed root traversals.
 
     Every simulation starts from the same C++ snapshot. A nonterminal leaf's v is
@@ -117,6 +117,7 @@ def search(env,mask,evaluator,config=SearchConfig()):
     """
     started=time.perf_counter()
     before=env.snapshot()
+    if monitor:monitor.bind(search_config=asdict(config),search_root_token=before["token"])
     stats=dict(simulations=0,network_evaluations=0,evaluation_attempts=0,expanded_nodes=0,
         terminal_hits=0,transitions=0,clones=0,max_depth=0,network_ms=0.0)
     rng=random.Random(config.seed)
@@ -130,6 +131,9 @@ def search(env,mask,evaluator,config=SearchConfig()):
             root=Node(before["next_actor"])
             root_value=_expand(root,base,tuple(mask),evaluator,stats)
             for _ in range(config.simulations):
+                if monitor and monitor.boundary("puct.simulation",{"completed":stats["simulations"],"budget":config.simulations}):
+                    from omok_monitoring import StopRequested
+                    raise StopRequested("PUCT stopped at simulation boundary")
                 with base.clone() as branch:
                     stats["clones"]+=1
                     node=root;path=[]
@@ -168,13 +172,23 @@ def search(env,mask,evaluator,config=SearchConfig()):
             raise RuntimeError("root budget accounting mismatch")
         if stats["network_evaluations"]+stats["terminal_hits"]!=config.simulations+1:
             raise RuntimeError("leaf evaluation accounting mismatch")
-        return dict(action=action,value=root_value,root_q=root.edges[action].q,
+        result=dict(action=action,value=root_value,root_q=root.edges[action].q,
             root_visits=visits,visit_distribution=[n/config.simulations for n in visits],
             root_priors=[root.edges[a].prior if a in root.edges else 0.0 for a in range(225)],
             root_edge_q=[root.edges[a].q if a in root.edges else 0.0 for a in range(225)],
             root_legal_count=len(root.edges),search=stats,search_config=asdict(config),
             milliseconds=(time.perf_counter()-started)*1000,token=before["token"])
+        if monitor:
+            from omok_monitoring.checks import puct
+            puct(monitor,result,mask=mask)
+        return result
     except Exception as exc:
+        if monitor:
+            from omok_monitoring.checks import puct
+            puct(monitor,dict(search=stats),outcome="failed_or_interrupted")
+            from omok_monitoring import StopRequested
+            if isinstance(exc,StopRequested):raise
+            monitor.emit("LP-09","failure","search_execution_failed",{"error":str(exc),"monitor_success_equations_applied":False})
         raise SearchError(str(exc),dict(search=stats,search_config=asdict(config),
             milliseconds=(time.perf_counter()-started)*1000)) from exc
     finally:
@@ -183,9 +197,10 @@ def search(env,mask,evaluator,config=SearchConfig()):
 
 
 class PUCTPlayer:
-    def __init__(self,evaluator,config=SearchConfig()):
+    def __init__(self,evaluator,config=SearchConfig(),*,monitor=None):
         self.evaluator=evaluator
         self.config=config
+        self.monitor=monitor
         self.descriptor=dict(kind="puct-v1",evaluator=evaluator.descriptor,config=asdict(config),
             selection="max-visits-then-prior-then-"+config.tie_break,
             root_noise=False,tree_reuse=False,candidate_pruning=False,value_usage="leaf-backup")
@@ -199,7 +214,7 @@ class PUCTPlayer:
         needs_load=getattr(self.evaluator,"model",None) is None
         load_ms=self.prepare()
         preparation_ms=(time.perf_counter()-start)*1000
-        result=search(env,mask,self.evaluator,self.config)
+        result=search(env,mask,self.evaluator,self.config,**({"monitor":self.monitor} if self.monitor else {}))
         result.update(model_sha256=self.evaluator.descriptor.get("sha256"),
             preparation_ms=preparation_ms,model_load_ms=load_ms if needs_load else 0.0)
         return result

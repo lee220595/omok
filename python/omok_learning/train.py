@@ -96,8 +96,21 @@ def score(m,c):
     return c.policy_weight*(m["policy_loss"] or 0)+c.value_weight*(m["value_mse"] or 0)
 
 
-def train(dataset_path,output,*,epochs=5,config=TrainConfig(),model_config=ModelConfig(),resume=None):
+def train(dataset_path,output,*,epochs=5,config=TrainConfig(),model_config=ModelConfig(),resume=None,monitor=None):
+    if monitor and monitor.boundary("sl.start",{"target_epochs":epochs}):
+        return dict(status="interrupted_before_training",recovery="last saved epoch only")
+    try:
+        return _train(dataset_path,output,epochs=epochs,config=config,model_config=model_config,resume=resume,monitor=monitor)
+    except Exception as error:
+        if monitor:monitor.emit("LP-02","failure","sl_execution_failed",dict(error=str(error)))
+        raise
+    finally:
+        if monitor:monitor.progress("sl.returned")
+
+
+def _train(dataset_path,output,*,epochs=5,config=TrainConfig(),model_config=ModelConfig(),resume=None,monitor=None):
     if type(epochs) is not int or epochs<1: raise ValueError("epochs must be positive")
+    if monitor:monitor.require_save("sl_recovery_checkpoint")
     torch.set_num_threads(config.threads); torch.use_deterministic_algorithms(True)
     random.seed(config.seed); torch.manual_seed(config.seed)
     dataset=load_dataset(dataset_path)
@@ -113,7 +126,7 @@ def train(dataset_path,output,*,epochs=5,config=TrainConfig(),model_config=Model
     epoch=step=0; history=[]; best=float("inf"); best_weights=None; best_epoch=0
     initial=metrics(model,training,config)
     if resume:
-        model,old=load(resume,kind="sl-resume")
+        model,old=load(resume,kind="sl-resume",**({"monitor":monitor} if monitor else {}))
         if old["config"]!=asdict(config) or old["dataset_id"]!=dataset["id"] or model.config!=model_config:
             raise ValueError("resume config/data/model mismatch")
         if old["runtime"]!=runtime() or old["metadata"]["code"]["source_sha256"]!=version["source_sha256"]:
@@ -126,22 +139,37 @@ def train(dataset_path,output,*,epochs=5,config=TrainConfig(),model_config=Model
         best_epoch=old["best_epoch"]
         initial=old["metadata"]["initial_train"]
         restore_rng(old["rng"])
+        if monitor:monitor.recovery_anchor("sl_recovery_checkpoint",resume)
     if epochs<=epoch: raise ValueError("target epochs must exceed completed epochs")
+    last_saved_epoch=epoch
     started=time.perf_counter(); status="completed"
     try:
         while epoch<epochs:
+            if monitor and monitor.boundary("sl.epoch",{"completed_epoch":epoch,"step":step}):
+                from omok_monitoring import StopRequested
+                raise StopRequested("SL stopped before next epoch")
             model.train()
             order=torch.randperm(len(training)).tolist()
             for offset in range(0,len(order),config.batch_size):
+                if monitor and monitor.boundary("sl.batch",{"epoch":epoch,"step":step}):
+                    from omok_monitoring import StopRequested
+                    raise StopRequested("SL stopped before next update")
                 samples=[training[i] for i in order[offset:offset+config.batch_size]]
                 if config.augment: samples=[augment(s,random.randrange(8)) for s in samples]
                 p,v,_=losses(model,samples)
                 loss=config.policy_weight*p+config.value_weight*v
                 if not torch.isfinite(loss): raise ValueError("nonfinite loss")
+                if monitor:
+                    from omok_monitoring.checks import numeric
+                    numeric(monitor,dict(policy=float(p.detach()),value=float(v.detach()),loss=float(loss.detach())),epoch=epoch,step=step)
                 optimizer.zero_grad(set_to_none=True); loss.backward(); optimizer.step(); step+=1
             scheduler.step(); epoch+=1
             tm=metrics(model,training,config); vm=metrics(model,validation,config)
             history.append(dict(epoch=epoch,step=step,train=tm,validation=vm,lr=scheduler.get_last_lr()[0]))
+            if monitor:
+                from omok_monitoring.checks import numeric,loss_observation
+                numeric(monitor,dict(train=tm,validation=vm),epoch=epoch,step=step,collected=("epoch_metrics",))
+                loss_observation(monitor,dict(train=tm,validation=vm))
             if score(vm,config)<best:
                 best=score(vm,config); best_weights=copy.deepcopy(model.state_dict()); best_epoch=epoch
             metadata=dict(code=version,dataset_id=dataset["id"],preprocess=dataset["manifest"]["preprocess"],
@@ -150,20 +178,32 @@ def train(dataset_path,output,*,epochs=5,config=TrainConfig(),model_config=Model
                 parent=str(resume) if resume else None)
             atomic_save(output/"latest.pt",payload(model,"sl-resume",metadata,optimizer=optimizer.state_dict(),
                 scheduler=scheduler.state_dict(),rng=rng_state(),epoch=epoch,step=step,cursor=0,
-                config=asdict(config),dataset_id=dataset["id"],history=history,best_score=best,best_weights=best_weights,best_epoch=best_epoch))
+                config=asdict(config),dataset_id=dataset["id"],history=history,best_score=best,best_weights=best_weights,best_epoch=best_epoch),
+                **({"monitor":monitor} if monitor else {}))
+            last_saved_epoch=epoch
+            if monitor:monitor.recovery_anchor("sl_recovery_checkpoint",output/"latest.pt")
             # Model construction consumes RNG; restore it to keep resume identical.
             rng=rng_state()
             selected=PolicyValueNet(model_config); selected.load_state_dict(best_weights)
             atomic_save(output/"best.pt",payload(selected,"inference",dict(metadata,best_score=best,selected_epoch=best_epoch,
-                selected_step=history[best_epoch-1]["step"],completed_epoch=epoch)))
+                selected_step=history[best_epoch-1]["step"],completed_epoch=epoch)),**({"monitor":monitor} if monitor else {}))
             restore_rng(rng)
-            save(output/"metrics.json",dict(status="running",history=history,initial_train=initial))
+            if monitor:
+                monitor.save_artifact("sl_metrics",output/"metrics.json",lambda:save(output/"metrics.json",dict(status="running",history=history,initial_train=initial)))
+            else:save(output/"metrics.json",dict(status="running",history=history,initial_train=initial))
     except KeyboardInterrupt:
+        status="interrupted_last_completed_epoch_only"
+    except Exception as error:
+        from omok_monitoring import StopRequested
+        if not isinstance(error,StopRequested):raise
         status="interrupted_last_completed_epoch_only"
     report=dict(status=status,epochs=epoch,step=step,initial_train=initial,history=history,
         elapsed_seconds=time.perf_counter()-started,parameters=sum(p.numel() for p in model.parameters()),
         dataset_id=dataset["id"],runtime=runtime(),model_config=asdict(model_config),config=asdict(config),code=version)
-    save(output/"metrics.json",report)
+    if monitor:
+        report["recovery_last_saved_epoch"]=last_saved_epoch
+        monitor.save_artifact("sl_metrics",output/"metrics.json",lambda:save(output/"metrics.json",report))
+    else:save(output/"metrics.json",report)
     return report
 
 
